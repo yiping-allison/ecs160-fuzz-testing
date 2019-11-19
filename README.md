@@ -14,4 +14,4 @@ UC Davis - Fall 2019
 ## Contributors
 
 * [Yiping (Allison)](mailto:ypsu@ucdavis.edu)
-* Joanne
+* [Joanne](mailto:joachang@ucdavis.edu)

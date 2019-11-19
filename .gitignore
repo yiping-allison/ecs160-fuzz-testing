@@ -1,3 +1,10 @@
+# Config
 .vscode/
-bin/
 .DS_Store
+
+# Remove executables
+*.out
+*.exe
+
+# My Personal Test
+my_test/
