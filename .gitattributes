@@ -1,2 +1,11 @@
 # Dev Purposes
 * text=auto
+
+# Remove from Package
+.gitignore          export-ignore
+.gitattributes      export-ignore
+Homework4Part1.pdf  export-ignore
+README.md           export-ignore
+
+# Graphics
+*.pdf  binary
