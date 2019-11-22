@@ -35,6 +35,7 @@ typedef struct tweeter
 typedef struct node
 {
 	Tweeter user;
+	struct node *head;
 	struct node *prev;
 	struct node *next;
 } Node;
@@ -44,6 +45,7 @@ char *extractName(char *str, int namePos);
 void insertToList(Node *list, char *name);
 int parseName(FILE *fileName);
 void processData(FILE *fileName, int namePos, Node *list);
+void sortToRight(Node *curNode);
 
 int main(int argc, char *argv[])
 {
@@ -153,6 +155,7 @@ Node *createNode(char *name, int initial)
 	Tweeter *newTweeter = malloc(sizeof(Tweeter));
 	if (initial == 1) {
 		// initial HEAD node
+		newNode -> head = newNode;
 		newTweeter -> count = 0;
 		newTweeter -> name = NULL;
 	} else {
@@ -174,13 +177,35 @@ Node *createNode(char *name, int initial)
  */
 void insertToList(Node *list, char *name)
 {
-	// TODO: Finish def
+	// TODO: Finish def -- what I'm working on
 	if ((list -> next == NULL) && (list -> prev == NULL) && 
 		(list -> user.name == NULL)) {
 			// The node list is empty -- we start at item one
 			// HEAD of the list
 			list -> user.count = 1;
 			list -> user.name = name;
+			printf("initialize: %d\n", list->user.count);
+			return;
 	}
 	// List is not empty so we must do an insertion sort
+	while (list -> user.name != NULL) {
+		if (strcmp(name, list -> user.name) == 0) {
+			// we found the user, no need to insert
+			++(list -> user.count);
+			sortToRight(list);
+			printf("new count: %d\n", list->user.count);
+			return;
+		} else {
+			return;
+		}
+	}
+}
+
+void sortToRight(Node *curNode)
+{
+	// TODO: What I'm working on
+	while ((curNode -> user.count) > (curNode -> prev -> user.count)) {
+		// swap places -- seg fault here bc I'm still working on it
+		
+	}
 }
