@@ -41,6 +41,7 @@ typedef struct node
 
 Node *createNode(char *name);
 char *extractName(char *str, int namePos);
+Node *initialize(void);
 void insertToList(Node *list, char *name);
 int parseName(FILE *fileName);
 void processData(FILE *fileName, int namePos, Node *list);
@@ -49,14 +50,29 @@ int main(int argc, char *argv[])
 {
 	// TODO: Implement this
 	FILE *fileName = fopen(argv[1], "r");
-
 	int namePos = parseName(fileName);
-	printf("Position of name col: %d\n", namePos);
-	Node *list = malloc(sizeof(Node));
+	Node *list = initialize();
 	processData(fileName, namePos, list);
 
+
+	// TODO: Free all memory when we reach here (at the end)
 	fclose(fileName);
 	return 0;
+}
+
+/**
+ * initialize creates the very first node which starts as the
+ * HEAD of the doubly-linked list.
+ * 
+ * @return the pointer to the HEAD
+ */
+Node *initialize(void) {
+	Node *list = malloc(sizeof(Node));
+	Tweeter *firstTweeter = malloc(sizeof(Tweeter));
+	firstTweeter -> count = 0;
+	firstTweeter -> name = NULL;
+	list -> user = *firstTweeter;
+	return list;
 }
 
 /**
@@ -93,6 +109,16 @@ int parseName(FILE *fileName)
 	return index;
 }
 
+/**
+ * processData takes in a file pointer, index of the Name field, and
+ * the pointer to the Empty HEAD of the list and processes the data of the
+ * csv file.
+ * 
+ * It will use a while loop to iterate through each line and add tweet info
+ * to the linked list using insertList().
+ * 
+ * @return void
+ */
 void processData(FILE *fileName, int namePos, Node *list)
 {
 	char buff[MAX_LINE];
@@ -131,7 +157,8 @@ char *extractName(char* str, int namePos)
  * createNode takes in a character string, name, and creates
  * a new Node and new Tweeter value.
  * 
- * @return The new node to be inserted in a list with filler values
+ * @return The pointer of the new node to be inserted in a list
+ * with filler values
  */
 Node *createNode(char *name)
 {
@@ -157,12 +184,12 @@ Node *createNode(char *name)
 void insertToList(Node *list, char *name)
 {
 	// TODO: Finish def
-		// Node *test = createNode(name);
-		// printf("test Node: %s\n", test->user.name);
-	if ((list -> next == NULL) && (list -> prev == NULL)) {
-		// This list is empty -- we start at item one
-		list -> user.count = 1;
-		list -> user.name = name;
-		printf("Behavior I want!\n");
+	if ((list -> next == NULL) && (list -> prev == NULL) && 
+		(list -> user.name == NULL)) {
+			// The node list is empty -- we start at item one
+			// HEAD of the list
+			list -> user.count = 1;
+			list -> user.name = name;
 	}
+	// List is not empty so we must do an insertion sort
 }
