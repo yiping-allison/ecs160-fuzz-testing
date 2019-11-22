@@ -18,7 +18,7 @@ UC Davis - Fall 2019
 
 ---
 
-## To Our Testing Team
+## :email: To Our Testing Team
 
 Please download the `zip` version of this repo because it will automatically remove unneeded development
 and informative files for you.
