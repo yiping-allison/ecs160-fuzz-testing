@@ -39,9 +39,8 @@ typedef struct node
 	struct node *next;
 } Node;
 
-Node *createNode(char *name);
+Node *createNode(char *name, int initial);
 char *extractName(char *str, int namePos);
-Node *initialize(void);
 void insertToList(Node *list, char *name);
 int parseName(FILE *fileName);
 void processData(FILE *fileName, int namePos, Node *list);
@@ -51,28 +50,13 @@ int main(int argc, char *argv[])
 	// TODO: Implement this
 	FILE *fileName = fopen(argv[1], "r");
 	int namePos = parseName(fileName);
-	Node *list = initialize();
+	Node *list = createNode(NULL, 1);
 	processData(fileName, namePos, list);
 
 
 	// TODO: Free all memory when we reach here (at the end)
 	fclose(fileName);
 	return 0;
-}
-
-/**
- * initialize creates the very first node which starts as the
- * HEAD of the doubly-linked list.
- * 
- * @return the pointer to the HEAD
- */
-Node *initialize(void) {
-	Node *list = malloc(sizeof(Node));
-	Tweeter *firstTweeter = malloc(sizeof(Tweeter));
-	firstTweeter -> count = 0;
-	firstTweeter -> name = NULL;
-	list -> user = *firstTweeter;
-	return list;
 }
 
 /**
@@ -154,20 +138,27 @@ char *extractName(char* str, int namePos)
 }
 
 /**
- * createNode takes in a character string, name, and creates
- * a new Node and new Tweeter value.
+ * createNode takes in a character string and and integer and creates
+ * a new Node and new Tweeter value. If the integer equals, 1, it means
+ * that we're dealing with the first INITIAL node. Otherwise it's a regular node.
  * 
  * @return The pointer of the new node to be inserted in a list
- * with filler values
+ *         with filler values
  */
-Node *createNode(char *name)
+Node *createNode(char *name, int initial)
 {
 	Node *newNode = malloc(sizeof(Node));
 	newNode -> next = NULL;
 	newNode -> prev = NULL;
 	Tweeter *newTweeter = malloc(sizeof(Tweeter));
-	newTweeter -> count = 1;
-	newTweeter -> name = name;
+	if (initial == 1) {
+		// initial HEAD node
+		newTweeter -> count = 0;
+		newTweeter -> name = NULL;
+	} else {
+		newTweeter -> count = 1;
+		newTweeter -> name = name;
+	}
 	newNode -> user = *newTweeter;
 	return newNode;
 }
