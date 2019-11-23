@@ -72,7 +72,8 @@ int main(int argc, char *argv[])
 	info -> last = first;
 	processData(fileName, namePos, first, info);
 
-
+	// printf("In the main func -- final answer\n");
+	// printList(info);
 	// TODO: Free all memory when we reach here (at the end)
 	fclose(fileName);
 	return 0;
@@ -133,8 +134,6 @@ void processData(FILE *fileName, int namePos, Node *list, Link *info)
 		char *name = extractName(str, namePos);
 		printf("name: %s\n", name);
 		insertToList(list, name, info);
-		// printf("line item: %s - %d\n", list->user.name, list->user.count);
-
 	}
 }
 
@@ -198,18 +197,17 @@ void insertToList(Node *list, char *name, Link *info)
 {
 	// TODO: Finish def -- what I'm working on
 	if (!(info -> head -> user.name)) {
-			// The node list is empty -- we start at item one
-			// HEAD of the list
-			info -> head -> user.count = 1;
-			info -> head -> user.name = allocateName(name);
-			return;
+		// The node list is empty -- we start at item one
+		// HEAD of the list
+		info -> head -> user.count = 1;
+		info -> head -> user.name = allocateName(name);
+		return;
 	}
 	// There're items in the list -- find the user first
 	int res = findUser(name, info);
 	if (res == -1) {
 		insertAtLast(name, info);
 	}
-	// printList(info);
 }
 
 /**
@@ -243,19 +241,32 @@ int findUser(char *name, Link *info)
 	while ((current -> user.count) > (current -> prev -> user.count)) {
 		// TODO: Swap current with current -> prev
 		swap(current -> prev, current, info);
-		// printList(info);
 		if ((current -> prev) == NULL) {
 			// we reached the end
 			break;
 		}
 	}
-	// printList(info);
 	return 1;
 }
 
 void swap(Node *left, Node *right, Link *info)
 {
 	// FIXME: Errors in swap relating to names > 2
+	// case only 2 nodes
+	if ((left -> prev == NULL) && (right -> next == NULL)) {
+		right -> prev = NULL;
+		right -> next = left;
+		left -> next = NULL;
+		left -> prev = right;
+		info -> head = right;
+		info -> last = left;
+		return;
+	}
+	// TODO: swapFirst
+	// TODO: swapEnd
+	// TODO: normal (adjacent) swap
+	
+	// Disregard the rest of this func cos it's WRONG
 	if (left -> prev == NULL) {
 		// left is the HEAD
 		printf("went here\n");
@@ -322,7 +333,7 @@ void printList(Link *info)
 {
 	Node *current = info -> head;
 	printf("\n");
-	printf("Printing final result:\n");
+	printf("Printing list:\n");
 	while (current != NULL) {
 		printf("user name: %s\n", current ->user.name);
 		printf("user count: %d\n", current ->user.count);
