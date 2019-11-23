@@ -265,6 +265,12 @@ void swap(Node *left, Node *right, Link *info)
 	// TODO: swapFirst
 	if ((left -> prev == NULL) && (right -> next != NULL)) {
 		// We do a first swap
+		left -> prev = right;
+		left -> next = right -> next;
+		right -> next = left;
+		right -> prev = NULL;
+		info -> head = right;
+		return;
 	}
 	// TODO: swapEnd
 	if ((right -> next == NULL) && (left -> prev != NULL)) {
@@ -277,7 +283,7 @@ void swap(Node *left, Node *right, Link *info)
 		return;
 	}
 	// TODO: normal (adjacent) swap
-	
+
 }
 
 /**
