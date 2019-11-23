@@ -5,6 +5,7 @@
 # Remove executables
 *.out
 *.exe
+*.o
 
 # My Personal Test
 my_test/
