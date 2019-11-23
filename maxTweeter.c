@@ -72,8 +72,8 @@ int main(int argc, char *argv[])
 	info -> last = first;
 	processData(fileName, namePos, first, info);
 
-	// printf("In the main func -- final answer\n");
-	// printList(info);
+	printf("In the main func -- final answer\n");
+	printList(info);
 	// TODO: Free all memory when we reach here (at the end)
 	fclose(fileName);
 	return 0;
@@ -252,8 +252,8 @@ int findUser(char *name, Link *info)
 void swap(Node *left, Node *right, Link *info)
 {
 	// FIXME: Errors in swap relating to names > 2
-	// case only 2 nodes
 	if ((left -> prev == NULL) && (right -> next == NULL)) {
+		// There's only 2 nodes
 		right -> prev = NULL;
 		right -> next = left;
 		left -> next = NULL;
@@ -262,7 +262,6 @@ void swap(Node *left, Node *right, Link *info)
 		info -> last = left;
 		return;
 	}
-	// TODO: swapFirst
 	if ((left -> prev == NULL) && (right -> next != NULL)) {
 		// We do a first swap
 		left -> prev = right;
@@ -272,9 +271,8 @@ void swap(Node *left, Node *right, Link *info)
 		info -> head = right;
 		return;
 	}
-	// TODO: swapEnd
 	if ((right -> next == NULL) && (left -> prev != NULL)) {
-		// End node swap
+		// We do a last swap
 		right -> prev = left -> prev;
 		right -> next = left;
 		left -> prev = right;
@@ -283,7 +281,12 @@ void swap(Node *left, Node *right, Link *info)
 		return;
 	}
 	// TODO: normal (adjacent) swap
-
+	printf("normal swap\n");
+	right -> prev = left -> prev;
+	left -> next = right -> next;
+	right -> next = left;
+	left -> prev = right;
+	return;
 }
 
 /**
