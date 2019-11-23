@@ -263,7 +263,13 @@ void swap(Node *left, Node *right, Link *info)
 		return;
 	}
 	// TODO: swapFirst
+	if ((left -> prev == NULL) && (right -> next != NULL)) {
+		// We do a first swap
+	}
 	// TODO: swapEnd
+	if ((right -> next == NULL) && (left -> prev != NULL)) {
+
+	}
 	// TODO: normal (adjacent) swap
 	
 	// Disregard the rest of this func cos it's WRONG
