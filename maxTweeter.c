@@ -268,32 +268,16 @@ void swap(Node *left, Node *right, Link *info)
 	}
 	// TODO: swapEnd
 	if ((right -> next == NULL) && (left -> prev != NULL)) {
-
+		// End node swap
+		right -> prev = left -> prev;
+		right -> next = left;
+		left -> prev = right;
+		left -> next = NULL;
+		info -> last = left;
+		return;
 	}
 	// TODO: normal (adjacent) swap
 	
-	// Disregard the rest of this func cos it's WRONG
-	if (left -> prev == NULL) {
-		// left is the HEAD
-		printf("went here\n");
-		right -> prev = NULL;
-		Node *tmp = right -> next;
-		right -> next = left;
-		left -> prev = right;
-		left -> next = tmp;
-		info -> head = right;
-		return;
-	}
-	printf("did we go here???\n");
-	printList(info);
-	Node *first = left -> prev;
-	first -> next = right;
-	right -> prev = first;
-	Node *last = right -> next;
-	left -> next = last;
-	last -> prev = left;
-	printf("\nchecking swap");
-	printList(info);
 }
 
 /**
