@@ -35,25 +35,37 @@ typedef struct tweeter
 typedef struct node
 {
 	Tweeter user;
-	struct node *head;
 	struct node *prev;
 	struct node *next;
 } Node;
 
+typedef struct doublelink
+{
+	struct node *head;
+	struct node *last;
+} Link;
+
 Node *createNode(char *name, int initial);
 char *extractName(char *str, int namePos);
-void insertToList(Node *list, char *name);
+int findUser(char *name, Link *info);
+void insertAtLast(char *name, Link *info);
+void insertToList(Node *list, char *name, Link *info);
 int parseName(FILE *fileName);
-void processData(FILE *fileName, int namePos, Node *list);
-void sortToRight(Node *curNode);
+void processData(FILE *fileName, int namePos, Node *list, Link *info);
+void swap(Node *left, Node *right);
+
+void printList(Link *info);
 
 int main(int argc, char *argv[])
 {
 	// TODO: Implement this
 	FILE *fileName = fopen(argv[1], "r");
 	int namePos = parseName(fileName);
+	Link *link = malloc(sizeof(Link));
 	Node *list = createNode(NULL, 1);
-	processData(fileName, namePos, list);
+	link -> head = list;
+	link -> last = list;
+	processData(fileName, namePos, list, link);
 
 
 	// TODO: Free all memory when we reach here (at the end)
@@ -105,15 +117,19 @@ int parseName(FILE *fileName)
  * 
  * @return void
  */
-void processData(FILE *fileName, int namePos, Node *list)
+void processData(FILE *fileName, int namePos, Node *list, Link *info)
 {
 	char buff[MAX_LINE];
 	while (!feof(fileName)) {
 		char *str = fgets(buff, MAX_LINE, fileName);
+		if (!str) {
+			return;
+		}
 		char *name = extractName(str, namePos);
-
-		insertToList(list, name);
-		printf("line item: %s - %d\n", list->user.name, list->user.count);
+		printf("name: %s\n", name);
+		insertToList(list, name, info);
+		// TODO: add function to reset linked list to HEAD
+		// printf("line item: %s - %d\n", list->user.name, list->user.count);
 
 	}
 }
@@ -137,7 +153,7 @@ char *extractName(char* str, int namePos)
 		index++;
 	}
 	return "";
-}
+ }
 
 /**
  * createNode takes in a character string and and integer and creates
@@ -155,7 +171,6 @@ Node *createNode(char *name, int initial)
 	Tweeter *newTweeter = malloc(sizeof(Tweeter));
 	if (initial == 1) {
 		// initial HEAD node
-		newNode -> head = newNode;
 		newTweeter -> count = 0;
 		newTweeter -> name = NULL;
 	} else {
@@ -175,7 +190,7 @@ Node *createNode(char *name, int initial)
  *
  * @return void
  */
-void insertToList(Node *list, char *name)
+void insertToList(Node *list, char *name, Link *info)
 {
 	// TODO: Finish def -- what I'm working on
 	if ((list -> next == NULL) && (list -> prev == NULL) && 
@@ -184,28 +199,75 @@ void insertToList(Node *list, char *name)
 			// HEAD of the list
 			list -> user.count = 1;
 			list -> user.name = name;
-			printf("initialize: %d\n", list->user.count);
 			return;
 	}
-	// List is not empty so we must do an insertion sort
-	while (list -> user.name != NULL) {
-		if (strcmp(name, list -> user.name) == 0) {
-			// we found the user, no need to insert
-			++(list -> user.count);
-			sortToRight(list);
-			printf("new count: %d\n", list->user.count);
-			return;
-		} else {
-			return;
-		}
+	// There's items in the list -- find the user first
+	int res = findUser(name, info);
+	if (res == -1) {
+		insertAtLast(name, info);
+		printList(info);
+		// no user found
+		// TODO: insert a new node at the end of the list
 	}
+
 }
 
-void sortToRight(Node *curNode)
+/**
+ * findUser takes in a name string and the data struct to the head and
+ * tail of the linked list and finds if the username can be found
+ * in our current dataset. 
+ * 
+ * If we find a user, we add the count in our dataset and sort it to its correct
+ * place and return 1. Otherwise, we return -1 -- not found.
+ * 
+ * @return 1 or -1 which represents found and not found
+ */
+int findUser(char *name, Link *info)
 {
-	// TODO: What I'm working on
-	while ((curNode -> user.count) > (curNode -> prev -> user.count)) {
-		// swap places -- seg fault here bc I'm still working on it
-		
+	Node *current = info -> head;
+	while (strcmp(current -> user.name, name) != 0) {
+		if (current -> next == NULL) {
+			return -1;
+		} else {
+			current = current -> next;
+		}
+	}	
+	// when we reach here, we found the data!
+
+	return 100;
+}
+
+/**
+ * insertAtLast takes in a name string and the data struct
+ * which stores the pointers to the head and tail of the linked list
+ * and adds an element to the very end of the linked list.
+ * 
+ * @param name
+ * @param info
+ * @return void
+ */
+void insertAtLast(char *name, Link *info)
+{
+	Node *newNode = createNode(name, 0);
+	newNode -> user.name = name;
+	info -> last -> next = newNode;
+	newNode -> prev = info -> last;
+	info -> last = newNode;
+}
+
+/**
+ * printList takes in the data struct which stores the head and the
+ * tail of the links and prints the whole linked list
+ * created so far.
+ * 
+ * This is used for debugging purposes
+ */
+void printList(Link *info)
+{
+	Node *current = info -> head;
+	while (current != NULL) {
+		printf("user name: %s\n", current ->user.name);
+		printf("user count: %d\n", current ->user.count);
+		current = current -> next;
 	}
 }
