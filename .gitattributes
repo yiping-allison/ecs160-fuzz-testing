@@ -1,11 +1,14 @@
 # Dev Purposes
 * text=auto
 
-# Remove from Package
+# Remove Logistics
 .gitignore          export-ignore
 .gitattributes      export-ignore
 Homework4Part1.pdf  export-ignore
 README.md           export-ignore
+
+# Remove Testing Files
+test.csv            export-ignore
 
 # Graphics
 *.pdf  binary

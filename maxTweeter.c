@@ -15,7 +15,7 @@
 #define MAX_LINE 1024
 
 /**
- * Tweeters defines the data struct which
+ * Tweeter defines the data struct which
  * stores the username and the number
  * of tweets the user has made.
  */
@@ -39,20 +39,25 @@ typedef struct node
 	struct node *next;
 } Node;
 
+/**
+ * Link defines an object which contains the address
+ * to the HEAD and TAIL of the double-linked list
+ */
 typedef struct doublelink
 {
 	struct node *head;
 	struct node *last;
 } Link;
 
+char *allocateName(char *nameToCopy);
 Node *createNode(char *name, int initial);
 char *extractName(char *str, int namePos);
 int findUser(char *name, Link *info);
+int getNameIndex(FILE *fileName);
 void insertAtLast(char *name, Link *info);
 void insertToList(Node *list, char *name, Link *info);
-int parseName(FILE *fileName);
 void processData(FILE *fileName, int namePos, Node *list, Link *info);
-void swap(Node *left, Node *right);
+void swap(Node *left, Node *right, Link *info);
 
 void printList(Link *info);
 
@@ -60,12 +65,12 @@ int main(int argc, char *argv[])
 {
 	// TODO: Implement this
 	FILE *fileName = fopen(argv[1], "r");
-	int namePos = parseName(fileName);
-	Link *link = malloc(sizeof(Link));
-	Node *list = createNode(NULL, 1);
-	link -> head = list;
-	link -> last = list;
-	processData(fileName, namePos, list, link);
+	int namePos = getNameIndex(fileName);
+	Link *info = malloc(sizeof(Link));
+	Node *first = createNode(NULL, 1);
+	info -> head = first;
+	info -> last = first;
+	processData(fileName, namePos, first, info);
 
 
 	// TODO: Free all memory when we reach here (at the end)
@@ -88,7 +93,7 @@ int main(int argc, char *argv[])
  * @param fileName The address to where the file is located
  * @return index of the username column
  */
-int parseName(FILE *fileName)
+int getNameIndex(FILE *fileName)
 {
 	// TODO: Make sure lines longer than 1024 are handled 
 	int index = 0;
@@ -128,7 +133,6 @@ void processData(FILE *fileName, int namePos, Node *list, Link *info)
 		char *name = extractName(str, namePos);
 		printf("name: %s\n", name);
 		insertToList(list, name, info);
-		// TODO: add function to reset linked list to HEAD
 		// printf("line item: %s - %d\n", list->user.name, list->user.count);
 
 	}
@@ -152,7 +156,7 @@ char *extractName(char* str, int namePos)
 		token = end;
 		index++;
 	}
-	return "";
+	return NULL;
  }
 
 /**
@@ -193,23 +197,19 @@ Node *createNode(char *name, int initial)
 void insertToList(Node *list, char *name, Link *info)
 {
 	// TODO: Finish def -- what I'm working on
-	if ((list -> next == NULL) && (list -> prev == NULL) && 
-		(list -> user.name == NULL)) {
+	if (!(info -> head -> user.name)) {
 			// The node list is empty -- we start at item one
 			// HEAD of the list
-			list -> user.count = 1;
-			list -> user.name = name;
+			info -> head -> user.count = 1;
+			info -> head -> user.name = allocateName(name);
 			return;
 	}
-	// There's items in the list -- find the user first
+	// There're items in the list -- find the user first
 	int res = findUser(name, info);
 	if (res == -1) {
 		insertAtLast(name, info);
-		printList(info);
-		// no user found
-		// TODO: insert a new node at the end of the list
 	}
-
+	// printList(info);
 }
 
 /**
@@ -224,6 +224,7 @@ void insertToList(Node *list, char *name, Link *info)
  */
 int findUser(char *name, Link *info)
 {
+	// TODO: Finish this
 	Node *current = info -> head;
 	while (strcmp(current -> user.name, name) != 0) {
 		if (current -> next == NULL) {
@@ -232,9 +233,50 @@ int findUser(char *name, Link *info)
 			current = current -> next;
 		}
 	}	
-	// when we reach here, we found the data!
+	// if we reach here, we found the user
+	++(current -> user.count);
+	if ((current -> prev) == NULL) {
+		// Nothing on the left -- current should be the new HEAD
+		info -> head = current;
+		return 1;
+	}
+	while ((current -> user.count) > (current -> prev -> user.count)) {
+		// TODO: Swap current with current -> prev
+		swap(current -> prev, current, info);
+		// printList(info);
+		if ((current -> prev) == NULL) {
+			// we reached the end
+			break;
+		}
+	}
+	// printList(info);
+	return 1;
+}
 
-	return 100;
+void swap(Node *left, Node *right, Link *info)
+{
+	// FIXME: Errors in swap relating to names > 2
+	if (left -> prev == NULL) {
+		// left is the HEAD
+		printf("went here\n");
+		right -> prev = NULL;
+		Node *tmp = right -> next;
+		right -> next = left;
+		left -> prev = right;
+		left -> next = tmp;
+		info -> head = right;
+		return;
+	}
+	printf("did we go here???\n");
+	printList(info);
+	Node *first = left -> prev;
+	first -> next = right;
+	right -> prev = first;
+	Node *last = right -> next;
+	left -> next = last;
+	last -> prev = left;
+	printf("\nchecking swap");
+	printList(info);
 }
 
 /**
@@ -249,10 +291,24 @@ int findUser(char *name, Link *info)
 void insertAtLast(char *name, Link *info)
 {
 	Node *newNode = createNode(name, 0);
-	newNode -> user.name = name;
+	newNode -> user.name = allocateName(name);
 	info -> last -> next = newNode;
 	newNode -> prev = info -> last;
 	info -> last = newNode;
+}
+
+/**
+ * allocateName is a utility function which takes in an address
+ * pointing to a name char array and copies that name into a new memory
+ * location (used for new username creation)
+ * 
+ * @return the new address to the name
+ */
+char *allocateName(char *nameToCopy)
+{
+	char *newName = malloc(sizeof(nameToCopy));
+	strcpy(newName, nameToCopy);
+	return newName;	
 }
 
 /**
@@ -265,6 +321,8 @@ void insertAtLast(char *name, Link *info)
 void printList(Link *info)
 {
 	Node *current = info -> head;
+	printf("\n");
+	printf("Printing final result:\n");
 	while (current != NULL) {
 		printf("user name: %s\n", current ->user.name);
 		printf("user count: %d\n", current ->user.count);
