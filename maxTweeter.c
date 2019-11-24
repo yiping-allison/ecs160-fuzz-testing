@@ -53,17 +53,16 @@ char *allocateName(char *nameToCopy);
 Node *createNode(char *name, int initial);
 char *extractName(char *str, int namePos);
 int findUser(char *name, Link *info);
+void freeLinkedMemory(Node *head);
 int getNameIndex(FILE *fileName);
 void insertAtLast(char *name, Link *info);
 void insertToList(Node *list, char *name, Link *info);
+void printList(Node *head, int count);
 void processData(FILE *fileName, int namePos, Node *list, Link *info);
 void swap(Node *left, Node *right, Link *info);
 
-void printList(Link *info);
-
 int main(int argc, char *argv[])
 {
-	// TODO: Implement this
 	FILE *fileName = fopen(argv[1], "r");
 	int namePos = getNameIndex(fileName);
 	Link *info = malloc(sizeof(Link));
@@ -71,11 +70,10 @@ int main(int argc, char *argv[])
 	info -> head = first;
 	info -> last = first;
 	processData(fileName, namePos, first, info);
-
-	printf("In the main func -- final answer\n");
-	printList(info);
-	// TODO: Free all memory when we reach here (at the end)
+	printList(info -> head, 10);
 	fclose(fileName);
+	freeLinkedMemory(info -> head);
+	free(fileName);
 	return 0;
 }
 
@@ -132,7 +130,6 @@ void processData(FILE *fileName, int namePos, Node *list, Link *info)
 			return;
 		}
 		char *name = extractName(str, namePos);
-		printf("name: %s\n", name);
 		insertToList(list, name, info);
 	}
 }
@@ -195,7 +192,6 @@ Node *createNode(char *name, int initial)
  */
 void insertToList(Node *list, char *name, Link *info)
 {
-	// TODO: Finish def -- what I'm working on
 	if (!(info -> head -> user.name)) {
 		// The node list is empty -- we start at item one
 		// HEAD of the list
@@ -222,7 +218,6 @@ void insertToList(Node *list, char *name, Link *info)
  */
 int findUser(char *name, Link *info)
 {
-	// TODO: Finish this
 	Node *current = info -> head;
 	while (strcmp(current -> user.name, name) != 0) {
 		if (current -> next == NULL) {
@@ -239,19 +234,23 @@ int findUser(char *name, Link *info)
 		return 1;
 	}
 	while ((current -> user.count) > (current -> prev -> user.count)) {
-		// TODO: Swap current with current -> prev
 		swap(current -> prev, current, info);
 		if ((current -> prev) == NULL) {
 			// we reached the end
+			info -> head = current;
 			break;
 		}
 	}
 	return 1;
 }
 
+/**
+ * swap will swap two nodes in the doubly-linked list
+ * 
+ * @return void
+ */
 void swap(Node *left, Node *right, Link *info)
 {
-	// FIXME: Errors in swap relating to names > 2
 	if ((left -> prev == NULL) && (right -> next == NULL)) {
 		// There's only 2 nodes
 		right -> prev = NULL;
@@ -264,6 +263,7 @@ void swap(Node *left, Node *right, Link *info)
 	}
 	if ((left -> prev == NULL) && (right -> next != NULL)) {
 		// We do a first swap
+		right -> next -> prev = left;
 		left -> prev = right;
 		left -> next = right -> next;
 		right -> next = left;
@@ -273,6 +273,7 @@ void swap(Node *left, Node *right, Link *info)
 	}
 	if ((right -> next == NULL) && (left -> prev != NULL)) {
 		// We do a last swap
+		left -> prev -> next = right;
 		right -> prev = left -> prev;
 		right -> next = left;
 		left -> prev = right;
@@ -280,8 +281,9 @@ void swap(Node *left, Node *right, Link *info)
 		info -> last = left;
 		return;
 	}
-	// TODO: normal (adjacent) swap
-	printf("normal swap\n");
+	// Regular swap
+	right -> next -> prev = left;
+	left -> prev -> next = right;
 	right -> prev = left -> prev;
 	left -> next = right -> next;
 	right -> next = left;
@@ -322,20 +324,46 @@ char *allocateName(char *nameToCopy)
 }
 
 /**
- * printList takes in the data struct which stores the head and the
- * tail of the links and prints the whole linked list
- * created so far.
+ * printList takes in the pointer to the head
+ * and prints the linked list.
  * 
- * This is used for debugging purposes
+ * It will print the whole linked list when count == -1, else num count.
+ * 
+ * @return void 
  */
-void printList(Link *info)
+void printList(Node *head, int count)
 {
-	Node *current = info -> head;
-	printf("\n");
-	printf("Printing list:\n");
-	while (current != NULL) {
-		printf("user name: %s\n", current ->user.name);
-		printf("user count: %d\n", current ->user.count);
-		current = current -> next;
+	if (count == -1) {
+		// print all
+		printf("\nPrinting all elements:\n");
+		while (head != NULL) {
+			printf("%s: %d\n", head -> user.name, head -> user.count);
+			head = head -> next;
+		}
+		return;
+	}
+	printf("\nPrinting Top 10:\n");
+	for (int i = 0; i < count; i++) {
+		if (head == NULL) {
+			break;
+		}
+		printf("%s: %d\n", head -> user.name, head -> user.count);
+		head = head -> next;
+	}
+}
+
+/**
+ * freeLinkedMemory frees all the allocated memory in the Node List
+ * 
+ * @return void
+ */
+void freeLinkedMemory(Node *head)
+{
+	Node *tmp;
+	while (head != NULL) {
+		tmp = head;
+		head = head -> next;
+		free(tmp -> user.name);
+		free(tmp);
 	}
 }
