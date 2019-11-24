@@ -8,7 +8,9 @@ Homework4Part1.pdf  export-ignore
 README.md           export-ignore
 
 # Remove Testing Files
-test.csv            export-ignore
+test.csv                   export-ignore
+blank.csv                  export-ignore
+cl-tweets-short-clean.csv  export-ignore
 
 # Graphics
 *.pdf  binary
