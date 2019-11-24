@@ -27,13 +27,15 @@ Thanks!
 
 ---
 
-## Assignment Details
+## Assignment Details & Usage
 
 The goal of this assignment is to create a program which counts the top 10 tweeters processed from a given tweet file.
 
 The program should not crash even when given invalid inputs.
 
-**Usage:** `./maxTweeter filename.csv`
+All of our testing files are located in `/tests`.
+
+**Usage:** `./maxTweeter.exe tests/filename.csv`
 
 **Output:**
 
@@ -44,3 +46,9 @@ Jane: 56
 ```
 
 For a more in-depth explanation of the assignment, check out the [pdf](Homework4Part1.pdf).
+
+---
+
+## Our Algorithm Implementation
+
+TBD

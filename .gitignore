@@ -1,6 +1,7 @@
 # Config
 .vscode/
 .DS_Store
+thumbs.db
 
 # Remove executables
 *.out
