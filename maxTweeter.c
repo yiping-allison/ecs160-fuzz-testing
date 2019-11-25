@@ -136,10 +136,10 @@ void checkBlank(FILE *fileName)
 int getNameIndex(FILE *fileName)
 {
 	// TODO: Make sure lines longer than 1024 are handled 
-	int loopCounter, index = 0;
-	int foundName = 0;
+	int loopCounter, index, foundName;
+	loopCounter = index = foundName = 0;
 	char buff[MAX_LINE + 1];
-	char *str = strdup(fgets(buff, MAX_LINE + 1, (FILE*)fileName));
+	char *str = strdup(fgets(buff, MAX_LINE + 1, fileName));
 	if (strlen(str) == MAX_LINE) { forceExit("\nError: Exceeded max character length\n"); }
 	char *token = str, *end = str;
 	while (token != NULL) {
@@ -173,12 +173,9 @@ int getNameIndex(FILE *fileName)
 void processData(FILE *fileName, int namePos, Link *info)
 {
 	// TODO: if the line here is > 1024, toss the line
-	// BUG: Crashing randomly for me??? -- Yiping
-	printf("Beg of processData\n");
 	char buff[MAX_LINE + 1];
 	while (!feof(fileName)) {
 		char *str = fgets(buff, MAX_LINE + 1, fileName);
-		printf("string: %s\n", str);
 		if (!str) {
 			return;
 		}
