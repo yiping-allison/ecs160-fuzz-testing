@@ -16,6 +16,9 @@
 /* max number of lines in the csv file */
 #define MAX_LINE 20000
 
+/* max number of commas in one CSV line */
+#define MAX_COMMAS 16
+
 /**
  * Tweeter defines the data struct which
  * stores the username and the number
@@ -56,7 +59,6 @@ void argumentCheck(int numArg);
 void checkFile(FILE *fileName);
 Node *createNode(char *name, int initial);
 char *extractName(char *str, int namePos, int *counter);
-//void countCommas(char *str, int namePos, int *counter);
 int findUser(char *name, Link *info);
 void forceExit(char *exitMsg);
 void freeLinkedMemory(Node *head);
@@ -156,7 +158,6 @@ void checkFile(FILE *fileName)
  */
 int getNameIndex(FILE *fileName)
 {
-	// TODO: Make sure lines longer than 1024 are handled 
 	int loopCounter, index, foundName;
 	loopCounter = index = foundName = 0;
 	int counter = 0;
@@ -175,7 +176,7 @@ int getNameIndex(FILE *fileName)
 		loopCounter++;
 	}
 	if (foundName > 1) { forceExit("\nError: More than one NAME column\n"); }
-	if (counter > 16) { forceExit("\nError: Too many commas in the Header.\n"); }
+	if (counter > MAX_COMMAS) { forceExit("\nError: Too many commas in the Header.\n"); }
 	return index;
 }
 
@@ -222,10 +223,8 @@ void processData(FILE *fileName, int namePos, Link *info)
 		insertToList(name, info);
 		lineCount++;
 	}
-
-	if ((info -> head -> user.name == NULL) && (info -> head -> user.count == 0))
-	{
-		forceExit("\nOnly Header in file.\n");
+	if ((info -> head -> user.name == NULL) && (info -> head -> user.count == 0)) {
+		forceExit("\nOnly HEADER in file.\n");
 	}
 }
 
@@ -234,6 +233,7 @@ void processData(FILE *fileName, int namePos, Link *info)
  *
  * @param str Address to CSV line
  * @param namePos Index of NAME value in CSV line 
+ * @param counter Address which contains count of commas
  * @return The supposed 'name' string at the index value
  */
 char *extractName(char* str, int namePos, int *counter)
@@ -242,8 +242,8 @@ char *extractName(char* str, int namePos, int *counter)
 	char *token = str, *end = str, *nameFound = NULL;
 	while (token != NULL) {
 		strsep(&end, ",");
-		*counter = *counter + 1;
-		if (*counter > 16) { 
+		(*counter)++;
+		if (*counter > MAX_COMMAS) { 
 			forceExit("\nError: Too many commas.\n"); }
 		if (index == namePos) {
 			nameFound = token;
@@ -251,7 +251,6 @@ char *extractName(char* str, int namePos, int *counter)
 		token = end;
 		index++;
 	}
-
 	return nameFound;
  }
 
