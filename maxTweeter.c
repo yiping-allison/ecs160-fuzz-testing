@@ -10,10 +10,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-/* max characters in the name field */
-#define NAME_LENGTH 20
-/* max characters in one csv line */
-#define MAX_LINE 1024
+/* max characters in one csv line + 1 bc '\0' takes one space */
+#define MAX_LINE 1025
 
 /**
  * Tweeter defines the data struct which
@@ -51,9 +49,12 @@ typedef struct doublelink
 } Link;
 
 char *allocateName(char *nameToCopy);
+void argumentCheck(int numArg);
+void checkBlank(FILE *fileName);
 Node *createNode(char *name, int initial);
 char *extractName(char *str, int namePos);
 int findUser(char *name, Link *info);
+void forceExit(char *exitMsg);
 void freeLinkedMemory(Node *head);
 int getNameIndex(FILE *fileName);
 void insertAtLast(char *name, Link *info);
@@ -64,7 +65,12 @@ void swap(Node *left, Node *right, Link *info);
 
 int main(int argc, char *argv[])
 {
+	argumentCheck(argc);
 	FILE *fileName = fopen(argv[1], "r");
+	if (fileName == NULL) {
+		forceExit("\nError: No file\n");
+	}
+	checkBlank(fileName);
 	int namePos = getNameIndex(fileName);
 	Link *info = malloc(sizeof(Link));
 	Node *first = createNode(NULL, 1);
@@ -75,7 +81,39 @@ int main(int argc, char *argv[])
 	fclose(fileName);
 	freeLinkedMemory(info -> head);
 	free(fileName);
-	return 0;
+	return EXIT_SUCCESS;
+}
+
+/**
+ * @brief Prints an error message and exits program
+ * 
+ * @param exitMsg Message relating to error
+ * @return void
+ */
+void forceExit(char *exitMsg)
+{
+	printf("%s\n", exitMsg);
+	exit(EXIT_FAILURE);
+}
+
+void argumentCheck(int numArg)
+{
+	if (numArg < 2) {
+		forceExit("\nInvalid Program Call -- Usage: ./maxTweeter.exe locationOfCSV\n");
+	} else if (numArg > 2) {
+		printf("\nMore than one file given -- Only the first file will be run\n");
+	}
+}
+
+void checkBlank(FILE *fileName)
+{
+	fseek(fileName, 0, SEEK_END);
+	long fileSize = 0;
+	fileSize = ftell(fileName);
+	if (fileSize == 0) {
+		forceExit("\nError: Nothing in CSV file\n");
+	}
+	fseek(fileName, 0, SEEK_SET);
 }
 
 /**
@@ -98,19 +136,22 @@ int main(int argc, char *argv[])
 int getNameIndex(FILE *fileName)
 {
 	// TODO: Make sure lines longer than 1024 are handled 
-	int index = 0;
-	char buff[MAX_LINE];
-	char *str = strdup(fgets(buff, MAX_LINE, (FILE*)fileName));
+	int loopCounter, index = 0;
+	int foundName = 0;
+	char buff[MAX_LINE + 1];
+	char *str = strdup(fgets(buff, MAX_LINE + 1, (FILE*)fileName));
+	if (strlen(str) == MAX_LINE) { forceExit("\nError: Exceeded max character length\n"); }
 	char *token = str, *end = str;
 	while (token != NULL) {
 		strsep(&end, ",");
 		if (strcmp(token, "name") == 0) {
-			return index;
+			++foundName;
+			if (foundName == 1) { index = loopCounter; }
 		}
 		token = end;
-		index++;
+		loopCounter++;
 	}
-	free(str);
+	if (foundName > 1) { forceExit("\nError: More than one NAME column\n"); }
 	return index;
 }
 
@@ -131,13 +172,21 @@ int getNameIndex(FILE *fileName)
  */
 void processData(FILE *fileName, int namePos, Link *info)
 {
-	char buff[MAX_LINE];
+	// TODO: if the line here is > 1024, toss the line
+	// BUG: Crashing randomly for me??? -- Yiping
+	printf("Beg of processData\n");
+	char buff[MAX_LINE + 1];
 	while (!feof(fileName)) {
-		char *str = fgets(buff, MAX_LINE, fileName);
+		char *str = fgets(buff, MAX_LINE + 1, fileName);
+		printf("string: %s\n", str);
 		if (!str) {
 			return;
 		}
 		char *name = extractName(str, namePos);
+		if (*name == '\0') {
+			// If name field is empty string
+			name = "empty";
+		}
 		insertToList(name, info);
 	}
 }
