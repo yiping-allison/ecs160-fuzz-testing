@@ -37,7 +37,11 @@ All of our testing files are located in `/tests`.
 
 Our program is documented according to `Doxygen` guidelines. Some of the annotations can be found [here](https://www.cs.cmu.edu/~410/doc/doxygen.html).
 
-**Usage:** `./maxTweeter.exe tests/filename.csv`
+**To Compile:** `make`
+
+_`make clean` will remove all maxTweeter related objects and executables from your directory._
+
+**To Run:** `./maxTweeter.exe tests/filename.csv`
 
 **Output:**
 
@@ -53,28 +57,30 @@ For a more in-depth explanation of the assignment, check out the [pdf](Homework4
 
 ## Our Algorithm Implementation
 
-TBD
+To Be Added...
 
 ---
 
 ## :clipboard: Testing Files
 
-* _blank.csv_ - Blank file
-* _cl-tweets-short-clean-20k.csv_ - CSV with 20k lines
-* _cl-tweets-short-clean.csv_ - CSV from HW3 (Valid CSV)
-* _doubleName.csv_ - CSV with more than one NAME field declared in the HEADER
-* _headerOnly.csv_ - A CSV with only the HEADER provided
-* _maxHeaderLength.csv_ - CSV with a HEADER greater than max character count
-* _test.csv_ - CSV which contains custom tests during development
-* _tooManyCommas.csv_ - CSV whose lines has too many commas (Doens't define valid Tweeter line)
+| Filename                          | Description                                                       |
+|:----------------------------------|:------------------------------------------------------------------|
+| blank.csv                         | Blank/Empty file                                                  |
+| cl-tweets-short-clean-20k.csv     | CSV with 20k lines                                                |
+| cl-tweets-short-clean.csv         | CSV from HW3 -- a valid CSV                                       |
+| doubleName.csv                    | CSV with more than one **name** field declared in the **header**  |
+| headerOnly.csv                    | A CSV with only the **header** provided                           |
+| maxHeaderLength.csv               | CSV with a **header** greater than max character count            |
+| test.csv                          | CSV which contains custom tests during development                |
+| tooManyCommas.csv                 | CSV whose lines have too many commas -- not a valid CSV line      |
 
 ---
 
 ## :whale: Docker
 
-Our fuzz testing is done using AFL -- [American Fuzzy Lop](http://lcamtuf.coredump.cx/afl/). The Professor and TA have provided us a docker container which already has AFL set up.
+Our fuzz testing is done using AFL -- [American Fuzzy Lop](http://lcamtuf.coredump.cx/afl/). The Professor and TA have provided us a docker image which already has AFL set up.
 
-You can access this container using: `docker pull caseycas/afl-docker`.
+You can access this image using: `docker pull caseycas/afl-docker`.
 
 ### Some Important Docker Commands
 
@@ -99,14 +105,13 @@ One terminal should be running a Docker Container, and the other, a terminal to 
 
 ### Docker Images & Containers
 
-The `afl-docker` given to us for HW4 is a Docker Image. Docker Images are not the same as a Docker Container.
+The `afl-docker` given to us for HW4 is a Docker Image; Docker Images are not the same as Docker Containers.
 
 A Docker Image is a snapshot of container. It's built on layers which describe the environment to run the container.
-Therefore, a docker image is immutable.
 
 A Container is a running _instance_ of an Image. They're portable encapsulations of an environment which run the applications provided.
 
-**If you run `docker ps`, and you see no Docker container running, you must run the Docker container first using:**
+**If you use the command, `docker ps`, and you see no Docker container running, you must run the Docker container first using:**
 
 `docker run --security-opt seccomp=unconfined -it caseycas/afl-docker`
 
