@@ -192,7 +192,6 @@ int getNameIndex(FILE *fileName)
  */
 void processData(FILE *fileName, int namePos, Link *info)
 {
-	// TODO: if the line here is > 1024, toss the line
 	int lineCount = 1;
 	char buff[MAX_LINE + 1];
 	while (!feof(fileName)) {
@@ -205,6 +204,10 @@ void processData(FILE *fileName, int namePos, Link *info)
 		if (!str) {
 			return;
 		}
+		if (strlen(str) >= MAX_CHAR) {
+			// if line char count > max char count, skip it
+			continue;
+		} 
 		char *name = extractName(str, namePos);
 		if (*name == '\0') {
 			// If name field is empty string
