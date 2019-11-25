@@ -11,7 +11,10 @@
 #include <string.h>
 
 /* max characters in one csv line + 1 bc '\0' takes one space */
-#define MAX_LINE 1025
+#define MAX_CHAR 1025
+
+/* max number of lines in the csv file */
+#define MAX_LINE 20000
 
 /**
  * Tweeter defines the data struct which
@@ -50,7 +53,7 @@ typedef struct doublelink
 
 char *allocateName(char *nameToCopy);
 void argumentCheck(int numArg);
-void checkBlank(FILE *fileName);
+void checkFile(FILE *fileName);
 Node *createNode(char *name, int initial);
 char *extractName(char *str, int namePos);
 int findUser(char *name, Link *info);
@@ -70,7 +73,7 @@ int main(int argc, char *argv[])
 	if (fileName == NULL) {
 		forceExit("\nError: No file\n");
 	}
-	checkBlank(fileName);
+	checkFile(fileName);
 	int namePos = getNameIndex(fileName);
 	Link *info = malloc(sizeof(Link));
 	Node *first = createNode(NULL, 1);
@@ -96,6 +99,15 @@ void forceExit(char *exitMsg)
 	exit(EXIT_FAILURE);
 }
 
+/**
+ * @brief Checks the number of arguments given
+ * 
+ * argumentCheck will exit the program if there's an invalid program call (missing csv path), or
+ * will print a message notifying only the first file will be used if multiple args are given.
+ * 
+ * @param numArg The number of args given
+ * @return void
+ */
 void argumentCheck(int numArg)
 {
 	if (numArg < 2) {
@@ -105,13 +117,21 @@ void argumentCheck(int numArg)
 	}
 }
 
-void checkBlank(FILE *fileName)
+/**
+ * @brief Checks the file size given to program
+ * 
+ * @param fileName The address to where the file is located
+ * @return void
+ */
+void checkFile(FILE *fileName)
 {
 	fseek(fileName, 0, SEEK_END);
 	long fileSize = 0;
 	fileSize = ftell(fileName);
 	if (fileSize == 0) {
 		forceExit("\nError: Nothing in CSV file\n");
+	} else if (fileSize > (sizeof(char) * (MAX_CHAR * MAX_LINE))) {
+		forceExit("\nError: CSV file greater than max file size\n");
 	}
 	fseek(fileName, 0, SEEK_SET);
 }
@@ -173,8 +193,14 @@ int getNameIndex(FILE *fileName)
 void processData(FILE *fileName, int namePos, Link *info)
 {
 	// TODO: if the line here is > 1024, toss the line
+	int lineCount = 1;
 	char buff[MAX_LINE + 1];
 	while (!feof(fileName)) {
+		if (lineCount > MAX_LINE) {
+			free(info);
+			free(fileName);
+			forceExit("\nError: CSV file greater than max line count\n");
+		}
 		char *str = fgets(buff, MAX_LINE + 1, fileName);
 		if (!str) {
 			return;
@@ -185,6 +211,7 @@ void processData(FILE *fileName, int namePos, Link *info)
 			name = "empty";
 		}
 		insertToList(name, info);
+		lineCount++;
 	}
 }
 
