@@ -11,7 +11,13 @@
 #include <string.h>
 
 /* max characters in one csv line + 1 bc '\0' takes one space */
-#define MAX_LINE 1025
+#define MAX_CHAR 1025
+
+/* max number of lines in the csv file */
+#define MAX_LINE 20000
+
+/* max number of commas in one CSV line */
+#define MAX_COMMAS 16
 
 /**
  * Tweeter defines the data struct which
@@ -50,9 +56,9 @@ typedef struct doublelink
 
 char *allocateName(char *nameToCopy);
 void argumentCheck(int numArg);
-void checkBlank(FILE *fileName);
+void checkFile(FILE *fileName);
 Node *createNode(char *name, int initial);
-char *extractName(char *str, int namePos);
+char *extractName(char *str, int namePos, int *counter);
 int findUser(char *name, Link *info);
 void forceExit(char *exitMsg);
 void freeLinkedMemory(Node *head);
@@ -70,7 +76,7 @@ int main(int argc, char *argv[])
 	if (fileName == NULL) {
 		forceExit("\nError: No file\n");
 	}
-	checkBlank(fileName);
+	checkFile(fileName);
 	int namePos = getNameIndex(fileName);
 	Link *info = malloc(sizeof(Link));
 	Node *first = createNode(NULL, 1);
@@ -96,6 +102,15 @@ void forceExit(char *exitMsg)
 	exit(EXIT_FAILURE);
 }
 
+/**
+ * @brief Checks the number of arguments given
+ * 
+ * argumentCheck will exit the program if there's an invalid program call (missing csv path), or
+ * will print a message notifying only the first file will be used if multiple args are given.
+ * 
+ * @param numArg The number of args given
+ * @return void
+ */
 void argumentCheck(int numArg)
 {
 	if (numArg < 2) {
@@ -105,13 +120,21 @@ void argumentCheck(int numArg)
 	}
 }
 
-void checkBlank(FILE *fileName)
+/**
+ * @brief Checks the file size given to program
+ * 
+ * @param fileName The address to where the file is located
+ * @return void
+ */
+void checkFile(FILE *fileName)
 {
 	fseek(fileName, 0, SEEK_END);
 	long fileSize = 0;
 	fileSize = ftell(fileName);
 	if (fileSize == 0) {
 		forceExit("\nError: Nothing in CSV file\n");
+	} else if (fileSize > (sizeof(char) * (MAX_CHAR * MAX_LINE))) {
+		forceExit("\nError: CSV file greater than max file size\n");
 	}
 	fseek(fileName, 0, SEEK_SET);
 }
@@ -119,10 +142,10 @@ void checkBlank(FILE *fileName)
 /**
  * @brief Extracts index of NAME field from CSV
  * 
- * parseName takes in a file pointer and returns
+ * getNameIndex takes in a file pointer and returns
  * the index of the name position from the csv file
  *
- * parseName uses strdup() and strsep() to parse lines.
+ * getNameIndex uses strdup() and strsep() to parse lines.
  * Unlike strtok, strsep will keep empty strings.
  * Documentation of strdup and strsep can be found at the following links:
  * 
@@ -135,15 +158,16 @@ void checkBlank(FILE *fileName)
  */
 int getNameIndex(FILE *fileName)
 {
-	// TODO: Make sure lines longer than 1024 are handled 
 	int loopCounter, index, foundName;
 	loopCounter = index = foundName = 0;
+	int counter = 0;
 	char buff[MAX_LINE + 1];
 	char *str = strdup(fgets(buff, MAX_LINE + 1, fileName));
 	if (strlen(str) == MAX_LINE) { forceExit("\nError: Exceeded max character length\n"); }
 	char *token = str, *end = str;
 	while (token != NULL) {
 		strsep(&end, ",");
+		counter = counter + 1;
 		if (strcmp(token, "name") == 0) {
 			++foundName;
 			if (foundName == 1) { index = loopCounter; }
@@ -152,6 +176,7 @@ int getNameIndex(FILE *fileName)
 		loopCounter++;
 	}
 	if (foundName > 1) { forceExit("\nError: More than one NAME column\n"); }
+	if (counter > MAX_COMMAS) { forceExit("\nError: Too many commas in the Header.\n"); }
 	return index;
 }
 
@@ -172,19 +197,34 @@ int getNameIndex(FILE *fileName)
  */
 void processData(FILE *fileName, int namePos, Link *info)
 {
-	// TODO: if the line here is > 1024, toss the line
+	int lineCount = 1;
 	char buff[MAX_LINE + 1];
+	int counter = 0;
 	while (!feof(fileName)) {
+		if (lineCount > MAX_LINE) {
+			free(info);
+			free(fileName);
+			forceExit("\nError: CSV file greater than max line count\n");
+		}
 		char *str = fgets(buff, MAX_LINE + 1, fileName);
 		if (!str) {
 			return;
 		}
-		char *name = extractName(str, namePos);
+		if (strlen(str) >= MAX_CHAR) {
+			// if line char count > max char count, skip it
+			continue;
+		} 
+		char *name = extractName(str, namePos, &counter);
+		counter = 0;
 		if (*name == '\0') {
 			// If name field is empty string
 			name = "empty";
 		}
 		insertToList(name, info);
+		lineCount++;
+	}
+	if ((info -> head -> user.name == NULL) && (info -> head -> user.count == 0)) {
+		forceExit("\nOnly HEADER in file.\n");
 	}
 }
 
@@ -193,21 +233,25 @@ void processData(FILE *fileName, int namePos, Link *info)
  *
  * @param str Address to CSV line
  * @param namePos Index of NAME value in CSV line 
+ * @param counter Address which contains count of commas
  * @return The supposed 'name' string at the index value
  */
-char *extractName(char* str, int namePos)
+char *extractName(char* str, int namePos, int *counter)
 {
 	int index = 0;
-	char *token = str, *end = str;
+	char *token = str, *end = str, *nameFound = NULL;
 	while (token != NULL) {
 		strsep(&end, ",");
+		(*counter)++;
+		if (*counter > MAX_COMMAS) { 
+			forceExit("\nError: Too many commas.\n"); }
 		if (index == namePos) {
-			return token;
+			nameFound = token;
 		}
 		token = end;
 		index++;
 	}
-	return NULL;
+	return nameFound;
  }
 
 /**

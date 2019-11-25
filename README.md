@@ -52,3 +52,16 @@ For a more in-depth explanation of the assignment, check out the [pdf](Homework4
 ## Our Algorithm Implementation
 
 TBD
+
+---
+
+## Testing Files
+
+* _blank.csv_: CSV with nothing in it
+* _cl-tweets-short-clean-20k.csv_: CSV with 20k lines
+* _cl-tweets-short-clean.csv_: CSV from HW3 (Valid CSV)
+* _doubleName.csv_:
+* _headerOnly.csv_:
+* _maxHeaderLength.csv_:
+* _test.csv_:
+* _tooManyCommas.csv_:
