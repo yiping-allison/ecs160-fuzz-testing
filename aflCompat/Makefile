@@ -11,3 +11,7 @@ maxTweeter.o: maxTweeter.c
 
 clean:
 	$(RM) Tweeter.exe *.o *~ 
+
+.PHONY: run
+run:
+	afl-fuzz -i in -o out -- ./Tweeter.exe @@

@@ -23,6 +23,19 @@ UC Davis - Fall 2019
 Please download the `zip` version of this repo because it will automatically remove unneeded development
 and informative files for you.
 
+We have provided an AFL-Compliant file structure, `aflCompat`, with a `Makefile` that will help make running commands/tests easier. After you download and extract the `zip` file, you can use `docker cp` to move `aflCompat` to your Docker Container.
+
+1. **Leave your example csv test files in `aflCompat/in` -- this is where AFL will look for file parameters.**
+2. **`make run` will tell the AFL Fuzz Tester to generate crash files and statistics to `aflCompat/out`.**
+
+The `Makefile` has the following commands...
+
+| Command         | What It Does                                                 |
+|:----------------|:-------------------------------------------------------------|
+| `make`          | Compiles the program for you -- Tweeter.exe                  |
+| `make clean`    | Removes all object and executable files                      |
+| `make run`      | Runs the AFL Fuzz Tester                                     |
+
 Thanks!
 
 ---
@@ -121,7 +134,7 @@ More information about Docker Images and Containers can be found [here](https://
 
 ---
 
-### :rabbit: AFL -- American Fuzzy Lop
+## :rabbit: AFL -- American Fuzzy Lop
 
 To compile the program using AFL, use the command: `afl-clang -g -o csv_read csv_sample.c`
 
@@ -131,5 +144,3 @@ Run the program with: `afl-fuzz -i afl/in -o afl/out -- ./csv_read @@`
 
 * `-i` : input directory
 * `-o` : output directory
-
-
