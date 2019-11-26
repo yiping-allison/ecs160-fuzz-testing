@@ -118,3 +118,18 @@ A Container is a running _instance_ of an Image. They're portable encapsulations
 _`--security-opt seccomp=unconfined` is needed if you want to run gdb in docker._
 
 More information about Docker Images and Containers can be found [here](https://stackoverflow.com/questions/23735149/what-is-the-difference-between-a-docker-image-and-a-container).
+
+---
+
+### :rabbit: AFL -- American Fuzzy Lop
+
+To compile the program using AFL, use the command: `afl-clang -g -o csv_read csv_sample.c`
+
+Run the program with: `afl-fuzz -i afl/in -o afl/out -- ./csv_read @@`
+
+`@@` signifies that you want to treat files in the `in` directory as parameters to your program.
+
+* `-i` : input directory
+* `-o` : output directory
+
+
