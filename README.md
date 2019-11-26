@@ -116,6 +116,16 @@ One terminal should be running a Docker Container, and the other, a terminal to 
 
 **Running `docker ps -a` will show all Docker containers, including ones that aren't running on your local machine.**
 
+#### Docker Image, Container, & Cleaning
+
+List all of your "installed" Images using `docker image`. The command to list all of your docker containers (including inactive ones) is explained above: `docker ps -a`.
+
+To clean all of your docker containers, use `docker rm $(docker ps -a -f status=exited -q)` where `-f` represents filter, and `-q` represents the docker container ID.
+
+You can also run an Image (create a container instance) and remove it upon exiting using `docker run --rm image_name`.
+
+For more Docker commands, visit [here](https://www.digitalocean.com/community/tutorials/how-to-remove-docker-images-containers-and-volumes).
+
 ### Docker Images & Containers
 
 The `afl-docker` given to us for HW4 is a Docker Image; Docker Images are not the same as Docker Containers.
