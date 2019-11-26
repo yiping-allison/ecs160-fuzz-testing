@@ -86,7 +86,6 @@ int main(int argc, char *argv[])
 	printList(info -> head, 10);
 	fclose(fileName);
 	freeLinkedMemory(info -> head);
-	free(fileName);
 	return EXIT_SUCCESS;
 }
 
