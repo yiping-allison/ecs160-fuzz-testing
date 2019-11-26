@@ -3,6 +3,12 @@
 .DS_Store
 thumbs.db
 
+# Remove afl crash stats
+crashes/*
+
+# Add in out dir for afl-testing
+!aflCompat/
+
 # Remove executables
 *.out
 *.exe

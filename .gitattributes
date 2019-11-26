@@ -8,7 +8,8 @@ Homework4Part1.pdf  export-ignore
 README.md           export-ignore
 
 # Remove Testing Files
-tests/  export-ignore
+tests/    export-ignore
+crashes/  export-ignore
 
 # Graphics
 *.pdf  binary
