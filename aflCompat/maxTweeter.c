@@ -68,6 +68,8 @@ void insertToList(char *name, Link *info);
 void printList(Node *head, int count);
 void processData(FILE *fileName, int namePos, Link *info);
 void swap(Node *left, Node *right, Link *info);
+int commaCounter(char *line);
+
 
 int main(int argc, char *argv[])
 {
@@ -143,6 +145,24 @@ void checkFile(FILE *fileName)
 	fseek(fileName, 0, SEEK_SET);
 }
 
+
+/**
+ * commaCounter counts commas.
+ *
+ */
+int commaCounter(char *line)
+{
+	int count = 0;
+	if(strlen(line) > 1) {
+		for (int i = 0; i < strlen(line)-1; i++) {
+			if (line[i] == ',') {
+				count++;
+			}
+		}
+	}
+	return count;
+}
+
 /**
  * @brief Extracts index of NAME field from CSV
  * 
@@ -167,7 +187,11 @@ int getNameIndex(FILE *fileName)
 	int counter = 0;
 	char buff[MAX_LINE + 1];
 	char *str = strdup(fgets(buff, MAX_LINE + 1, fileName));
+	
+	if (commaCounter(str) != MAX_COMMAS) { forceExit("\nError: Wrong number of columns in Header.\n"); }
+
 	if (strlen(str) == MAX_LINE) { forceExit("\nError: Exceeded max character length\n"); }
+
 	char *token = str, *end = str;
 	char *nullCheck = NULL;
 	while (token != NULL) {
@@ -216,6 +240,8 @@ void processData(FILE *fileName, int namePos, Link *info)
 			forceExit("\nError: CSV file greater than max line count\n");
 		}
 		char *str = fgets(buff, MAX_LINE + 1, fileName);
+		if (commaCounter(str) != MAX_COMMAS) { continue; }
+
 		if (!str) {
 			return;
 		}
