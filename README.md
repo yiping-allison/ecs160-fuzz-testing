@@ -91,6 +91,8 @@ To Be Added...
 
 ## :whale: Docker
 
+[**Docker Commandline Documentation Link**](https://docs.docker.com/engine/reference/commandline/docker/)
+
 Our fuzz testing is done using AFL -- [American Fuzzy Lop](http://lcamtuf.coredump.cx/afl/). The Professor and TA have provided us a docker image which already has AFL set up.
 
 You can access this image using: `docker pull caseycas/afl-docker`.
@@ -134,17 +136,21 @@ A Docker Image is a snapshot of container. It's built on layers which describe t
 
 A Container is a running _instance_ of an Image. They're portable encapsulations of an environment which run the applications provided.
 
-**If you use the command, `docker ps`, and you see no Docker container running, you must run the Docker container first using:**
+**If you use the command, `docker ps -a`, and you see no Docker container existing, you must run the Docker container first using:**
 
 `docker run --security-opt seccomp=unconfined -it caseycas/afl-docker`
 
 _`--security-opt seccomp=unconfined` is needed if you want to run gdb in docker._
 
+To use an existing docker container, use the command: `docker start -a -i [containerName]`
+
+where `-a` represents attach, and `-i` represents interactive shell. The [docker documentation page for `start`](https://docs.docker.com/engine/reference/commandline/start/) has more explanations on different types of flags and usage types.
+
 More information about Docker Images and Containers can be found [here](https://stackoverflow.com/questions/23735149/what-is-the-difference-between-a-docker-image-and-a-container).
 
 ---
 
-## :rabbit: AFL -- American Fuzzy Lop
+## :rabbit: AFL -- [American Fuzzy Lop](http://lcamtuf.coredump.cx/afl/)
 
 To compile the program using AFL, use the command: `afl-clang -g -o csv_read csv_sample.c`
 
