@@ -17,7 +17,7 @@
 #define MAX_LINE 20000
 
 /* required number of commas in one CSV line */
-#define NUM_COMMAS 16
+#define NUM_COMMAS 15
 
 /**
  * Tweeter defines the data struct which
@@ -59,7 +59,7 @@ void argumentCheck(int numArg);
 void checkFile(FILE *fileName);
 int commaCounter(char *line);
 Node *createNode(char *name, int initial);
-char *extractName(char *str, int namePos, int *counter);
+char *extractName(char *str, int namePos);
 int findUser(char *name, Link *info);
 void forceExit(char *exitMsg);
 void freeLinkedMemory(Node *head);
@@ -184,7 +184,6 @@ int getNameIndex(FILE *fileName)
 {
 	int loopCounter, index, foundName;
 	loopCounter = index = foundName = 0;
-	int counter = 0;
 	char buff[MAX_LINE + 1];
 	char *str = strdup(fgets(buff, MAX_LINE + 1, fileName));
 	if (commaCounter(str) != NUM_COMMAS) { forceExit("\nError: Wrong number of columns in Header.\n"); }
@@ -196,7 +195,6 @@ int getNameIndex(FILE *fileName)
 		if (!nullCheck) {
 			return -1;
 		}
-		counter++;
 		if (strcmp(token, "name") == 0) {
 			++foundName;
 			if (foundName == 1) { index = loopCounter; }
@@ -205,7 +203,6 @@ int getNameIndex(FILE *fileName)
 		loopCounter++;
 	}
 	if (foundName > 1) { forceExit("\nError: More than one NAME column\n"); }
-	if (counter > NUM_COMMAS) { forceExit("\nError: Too many commas in the Header.\n"); }
 	return index;
 }
 
@@ -228,7 +225,6 @@ void processData(FILE *fileName, int namePos, Link *info)
 {
 	int lineCount = 1;
 	char buff[MAX_LINE + 1];
-	int counter = 0;
 	while (!feof(fileName)) {
 		if (lineCount > MAX_LINE) {
 			free(info);
@@ -245,14 +241,13 @@ void processData(FILE *fileName, int namePos, Link *info)
 			// if line char count > max char count, skip it
 			continue;
 		} 
-		char *name = extractName(str, namePos, &counter);
+		char *name = extractName(str, namePos);
 
 		if (strcmp(name, "invalid") == 0) {
 			printf("\nFound an invalid line.\n");
 			continue;
 		}
 
-		counter = 0;
 		if (*name == '\0') {
 			// If name field is empty string
 			name = "empty";
@@ -273,7 +268,7 @@ void processData(FILE *fileName, int namePos, Link *info)
  * @param counter Address which contains count of commas
  * @return The supposed 'name' string at the index value
  */
-char *extractName(char* str, int namePos, int *counter)
+char *extractName(char* str, int namePos)
 {
 	int index = 0;
 	char *token = str, *end = str, *nameFound = NULL;
@@ -283,9 +278,6 @@ char *extractName(char* str, int namePos, int *counter)
 		if (!nullCheck) {
 			return "invalid";
 		}
-		(*counter)++;
-		if (*counter > NUM_COMMAS) { 
-			forceExit("\nError: Too many commas.\n"); }
 		if (index == namePos) {
 			nameFound = token;
 		}

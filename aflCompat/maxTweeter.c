@@ -17,7 +17,7 @@
 #define MAX_LINE 20000
 
 /* required number of commas in one CSV line */
-#define NUM_COMMAS 16
+#define NUM_COMMAS 15
 
 /**
  * Tweeter defines the data struct which
