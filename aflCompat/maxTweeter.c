@@ -16,8 +16,8 @@
 /* max number of lines in the csv file */
 #define MAX_LINE 20000
 
-/* max number of commas in one CSV line */
-#define MAX_COMMAS 16
+/* required number of commas in one CSV line */
+#define NUM_COMMAS 16
 
 /**
  * Tweeter defines the data struct which
@@ -57,6 +57,7 @@ typedef struct doublelink
 char *allocateName(char *nameToCopy);
 void argumentCheck(int numArg);
 void checkFile(FILE *fileName);
+int commaCounter(char *line);
 Node *createNode(char *name, int initial);
 char *extractName(char *str, int namePos, int *counter);
 int findUser(char *name, Link *info);
@@ -68,7 +69,6 @@ void insertToList(char *name, Link *info);
 void printList(Node *head, int count);
 void processData(FILE *fileName, int namePos, Link *info);
 void swap(Node *left, Node *right, Link *info);
-int commaCounter(char *line);
 
 
 int main(int argc, char *argv[])
@@ -80,11 +80,9 @@ int main(int argc, char *argv[])
 	}
 	checkFile(fileName);
 	int namePos = getNameIndex(fileName);
-
 	if (namePos == -1) {
 		forceExit("\nError: Name column not found.\n");
 	}
-
 	Link *info = malloc(sizeof(Link));
 	Node *first = createNode(NULL, 1);
 	info -> head = first;
@@ -147,14 +145,16 @@ void checkFile(FILE *fileName)
 
 
 /**
- * commaCounter counts commas.
+ * @brief Counts amount of commas in a line
  *
+ * @param line Pointer of a char array
+ * @return int Number of commas found
  */
 int commaCounter(char *line)
 {
 	int count = 0;
-	if(strlen(line) > 1) {
-		for (int i = 0; i < strlen(line)-1; i++) {
+	if (strlen(line) >= 1) {
+		for (int i = 0; i < strlen(line) - 1; i++) {
 			if (line[i] == ',') {
 				count++;
 			}
@@ -187,11 +187,8 @@ int getNameIndex(FILE *fileName)
 	int counter = 0;
 	char buff[MAX_LINE + 1];
 	char *str = strdup(fgets(buff, MAX_LINE + 1, fileName));
-	
-	if (commaCounter(str) != MAX_COMMAS) { forceExit("\nError: Wrong number of columns in Header.\n"); }
-
+	if (commaCounter(str) != NUM_COMMAS) { forceExit("\nError: Wrong number of columns in Header.\n"); }
 	if (strlen(str) == MAX_LINE) { forceExit("\nError: Exceeded max character length\n"); }
-
 	char *token = str, *end = str;
 	char *nullCheck = NULL;
 	while (token != NULL) {
@@ -199,8 +196,7 @@ int getNameIndex(FILE *fileName)
 		if (!nullCheck) {
 			return -1;
 		}
-
-		counter = counter + 1;
+		counter++;
 		if (strcmp(token, "name") == 0) {
 			++foundName;
 			if (foundName == 1) { index = loopCounter; }
@@ -209,7 +205,7 @@ int getNameIndex(FILE *fileName)
 		loopCounter++;
 	}
 	if (foundName > 1) { forceExit("\nError: More than one NAME column\n"); }
-	if (counter > MAX_COMMAS) { forceExit("\nError: Too many commas in the Header.\n"); }
+	if (counter > NUM_COMMAS) { forceExit("\nError: Too many commas in the Header.\n"); }
 	return index;
 }
 
@@ -240,7 +236,7 @@ void processData(FILE *fileName, int namePos, Link *info)
 			forceExit("\nError: CSV file greater than max line count\n");
 		}
 		char *str = fgets(buff, MAX_LINE + 1, fileName);
-		if (commaCounter(str) != MAX_COMMAS) { continue; }
+		if (commaCounter(str) != NUM_COMMAS) { continue; }
 
 		if (!str) {
 			return;
@@ -287,10 +283,8 @@ char *extractName(char* str, int namePos, int *counter)
 		if (!nullCheck) {
 			return "invalid";
 		}
-
-
 		(*counter)++;
-		if (*counter > MAX_COMMAS) { 
+		if (*counter > NUM_COMMAS) { 
 			forceExit("\nError: Too many commas.\n"); }
 		if (index == namePos) {
 			nameFound = token;
