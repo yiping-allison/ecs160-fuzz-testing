@@ -157,7 +157,7 @@ More information about Docker Images, Containers, and their differences can be f
 
 ## :rabbit: AFL -- [American Fuzzy Lop](http://lcamtuf.coredump.cx/afl/)
 
-**If you're using our provided `aflCompat` to run our program, the `makefile` included within the folder automatically compiles and runs the program for you. [See here](email-to-our-testing-team).**
+**If you're using our provided `aflCompat` to run our program, the `makefile` included within the folder automatically compiles and runs the program for you. [See here](#email-to-our-testing-team).**
 
 To compile the program using AFL, use the command: `afl-clang -g -o csv_read csv_sample.c`
 
