@@ -3,9 +3,6 @@
 .DS_Store
 thumbs.db
 
-# Remove afl crash stats
-crashes/*
-
 # Add in out dir for afl-testing
 !aflCompat/
 
@@ -13,6 +10,3 @@ crashes/*
 *.out
 *.exe
 *.o
-
-# My Personal Test
-my_test/

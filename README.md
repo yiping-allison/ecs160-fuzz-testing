@@ -23,7 +23,7 @@ UC Davis - Fall 2019
 Please download the `zip` version of this repo because it will automatically remove unneeded development
 and informative files for you.
 
-We have provided an AFL-Compliant file structure, `aflCompat`, with a `Makefile` that will help make running commands/tests easier. After you download and extract the `zip` file, you can use `docker cp` to move `aflCompat` to your Docker Container.
+We have provided a AFL-Compliant file structure, `aflCompat`, with a `Makefile` that will help make running commands/tests easier. After you download and extract the `zip` file, you can use `docker cp` to move `aflCompat` to your Docker Container.
 
 1. **Leave your example csv test files in `aflCompat/in` -- this is where AFL will look for file parameters.**
 2. **`make run` will tell the AFL Fuzz Tester to generate crash files and statistics to `aflCompat/out`.**
@@ -46,9 +46,10 @@ The goal of this assignment is to create a program which counts the top 10 tweet
 
 The program should not crash even when given invalid inputs.
 
-All of our testing files are located in `/tests`.
+### Repo Details
 
-Our program is documented according to `Doxygen` guidelines. Some of the annotations can be found [here](https://www.cs.cmu.edu/~410/doc/doxygen.html).
+* All of our testing files are located in `/tests`.
+* Our program is documented according to `Doxygen` guidelines. Some of the annotations can be found [here](https://www.cs.cmu.edu/~410/doc/doxygen.html).
 
 **To Compile:** `make`
 
@@ -63,6 +64,10 @@ _`make clean` will remove all maxTweeter related objects and executables from yo
 Bob: 67
 Jane: 56
 ```
+
+### AFL Docker Testing
+
+We've provided a directory structure which works with the fuzz tester on Docker. It is listed in our repo as `aflCompat`. For more information on this, read [this](#email-to-our-testing-team).
 
 For a more in-depth explanation of the assignment, check out the [pdf](Homework4Part1.pdf).
 
@@ -95,7 +100,7 @@ To Be Added...
 
 Our fuzz testing is done using AFL -- [American Fuzzy Lop](http://lcamtuf.coredump.cx/afl/). The Professor and TA have provided us a docker image which already has AFL set up.
 
-You can access this image using: `docker pull caseycas/afl-docker`.
+You can access the image using: `docker pull caseycas/afl-docker`.
 
 ### Some Important Docker Commands
 
@@ -132,7 +137,7 @@ For more Docker commands, visit [here](https://www.digitalocean.com/community/tu
 
 The `afl-docker` given to us for HW4 is a Docker Image; Docker Images are not the same as Docker Containers.
 
-A Docker Image is a snapshot of container. It's built on layers which describe the environment to run the container.
+A Docker Image is a snapshot of container. It describes the environment to run the container.
 
 A Container is a running _instance_ of an Image. They're portable encapsulations of an environment which run the applications provided.
 
@@ -142,17 +147,21 @@ A Container is a running _instance_ of an Image. They're portable encapsulations
 
 _`--security-opt seccomp=unconfined` is needed if you want to run gdb in docker._
 
-To use an existing docker container, use the command: `docker start -a -i [containerName]`
+To run an existing docker container, use the command, `docker start -a -i [containerName]`, where `-a` represents attach, and `-i` represents interactive shell.
 
-where `-a` represents attach, and `-i` represents interactive shell. The [docker documentation page for `start`](https://docs.docker.com/engine/reference/commandline/start/) has more explanations on different types of flags and usage types.
+The [docker documentation page for `start`](https://docs.docker.com/engine/reference/commandline/start/) has more explanations on different types of flags and usage types.
 
-More information about Docker Images and Containers can be found [here](https://stackoverflow.com/questions/23735149/what-is-the-difference-between-a-docker-image-and-a-container).
+More information about Docker Images, Containers, and their differences can be found [here](https://stackoverflow.com/questions/23735149/what-is-the-difference-between-a-docker-image-and-a-container).
 
 ---
 
 ## :rabbit: AFL -- [American Fuzzy Lop](http://lcamtuf.coredump.cx/afl/)
 
+**If you're using our provided `aflCompat` to run our program, the `makefile` included within the folder automatically compiles and runs the program for you. [See here](email-to-our-testing-team).**
+
 To compile the program using AFL, use the command: `afl-clang -g -o csv_read csv_sample.c`
+
+`afl-clang` is a special compiler which allows the AFL program to record statistics, etc.
 
 Run the program with: `afl-fuzz -i afl/in -o afl/out -- ./csv_read @@`
 
@@ -160,3 +169,5 @@ Run the program with: `afl-fuzz -i afl/in -o afl/out -- ./csv_read @@`
 
 * `-i` : input directory
 * `-o` : output directory
+
+More information about AFL Docker can be found [here](AFL-Docker-Guide.pdf).

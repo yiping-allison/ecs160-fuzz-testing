@@ -2,14 +2,14 @@
 * text=auto
 
 # Remove Logistics
-.gitignore          export-ignore
-.gitattributes      export-ignore
-Homework4Part1.pdf  export-ignore
-README.md           export-ignore
+.gitignore            export-ignore
+.gitattributes        export-ignore
+Homework4Part1.pdf    export-ignore
+README.md             export-ignore
+AFL-Docker-Guide.pdf  export-ignore
 
 # Remove Testing Files
 tests/    export-ignore
-crashes/  export-ignore
 
 # Graphics
 *.pdf  binary

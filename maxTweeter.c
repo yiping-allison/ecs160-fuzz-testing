@@ -46,7 +46,7 @@ typedef struct node
 
 /**
  * Link defines an object which contains the address
- * to the HEAD and TAIL of the double-linked list
+ * to the HEAD and TAIL of the doubly-linked list
  */
 typedef struct doublelink
 {
@@ -70,23 +70,17 @@ void printList(Node *head, int count);
 void processData(FILE *fileName, int namePos, Link *info);
 void swap(Node *left, Node *right, Link *info);
 
-
 int main(int argc, char *argv[])
 {
 	argumentCheck(argc);
 	FILE *fileName = fopen(argv[1], "r");
-	if (fileName == NULL) {
-		forceExit("\nError: No file\n");
-	}
+	if (fileName == NULL) forceExit("\nError: No file\n");
 	checkFile(fileName);
-	int namePos = getNameIndex(fileName);
-	if (namePos == -1) {
-		forceExit("\nError: Name column not found.\n");
-	}
 	Link *info = malloc(sizeof(Link));
 	Node *first = createNode(NULL, 1);
 	info -> head = first;
 	info -> last = first;
+	int namePos = getNameIndex(fileName);
 	processData(fileName, namePos, info);
 	printList(info -> head, 10);
 	fclose(fileName);
@@ -186,14 +180,14 @@ int getNameIndex(FILE *fileName)
 	loopCounter = index = foundName = 0;
 	char buff[MAX_LINE + 1];
 	char *str = strdup(fgets(buff, MAX_LINE + 1, fileName));
-	if (commaCounter(str) != NUM_COMMAS) { forceExit("\nError: Wrong number of columns in Header.\n"); }
-	if (strlen(str) == MAX_LINE) { forceExit("\nError: Exceeded max character length\n"); }
+	if (commaCounter(str) != NUM_COMMAS) forceExit("\nError: Wrong number of columns in Header.\n");
+	if (strlen(str) == MAX_LINE) forceExit("\nError: Exceeded max character length\n");
 	char *token = str, *end = str;
 	char *nullCheck = NULL;
 	while (token != NULL) {
 		nullCheck = strsep(&end, ",");
 		if (!nullCheck) {
-			return -1;
+			break;
 		}
 		if (strcmp(token, "name") == 0) {
 			++foundName;
@@ -202,7 +196,8 @@ int getNameIndex(FILE *fileName)
 		token = end;
 		loopCounter++;
 	}
-	if (foundName > 1) { forceExit("\nError: More than one NAME column\n"); }
+	if (foundName > 1) forceExit("\nError: More than one NAME column\n");
+	if (foundName < 1) forceExit("\nError: No Name column found\n");
 	return index;
 }
 
@@ -228,27 +223,23 @@ void processData(FILE *fileName, int namePos, Link *info)
 	while (!feof(fileName)) {
 		if (lineCount > MAX_LINE) {
 			free(info);
-			free(fileName);
 			forceExit("\nError: CSV file greater than max line count\n");
 		}
 		char *str = fgets(buff, MAX_LINE + 1, fileName);
-		if (commaCounter(str) != NUM_COMMAS) { continue; }
-
-		if (!str) {
-			return;
-		}
-		if (strlen(str) >= MAX_CHAR) {
+		if (!str) return;	// If EOF, return
+		if (commaCounter(str) != NUM_COMMAS) {
+			lineCount++;
+			continue;
+		} else if (strlen(str) >= MAX_CHAR) {
 			// if line char count > max char count, skip it
+			lineCount++;
 			continue;
 		} 
 		char *name = extractName(str, namePos);
-
 		if (strcmp(name, "invalid") == 0) {
-			printf("\nFound an invalid line.\n");
+			lineCount++;
 			continue;
-		}
-
-		if (*name == '\0') {
+		} else if (*name == '\0') {
 			// If name field is empty string
 			name = "empty";
 		}
@@ -275,9 +266,7 @@ char *extractName(char* str, int namePos)
 	char *nullCheck = NULL;
 	while (token != NULL) {
 		nullCheck = strsep(&end, ",");
-		if (!nullCheck) {
-			return "invalid";
-		}
+		if (!nullCheck) return "invalid";
 		if (index == namePos) {
 			nameFound = token;
 		}
@@ -484,6 +473,10 @@ void printList(Node *head, int count)
 	if (count == -1) {
 		printf("\nPrinting all elements:\n");
 		while (head != NULL) {
+			if ((head -> user.name == NULL) && head -> user.count == 0) {
+				printf("Nothing to print -- check if you have valid inputs\n");
+				return;
+			}
 			printf("%s: %d\n", head -> user.name, head -> user.count);
 			head = head -> next;
 		}
@@ -491,8 +484,10 @@ void printList(Node *head, int count)
 	}
 	printf("\nPrinting Top 10:\n");
 	for (int i = 0; i < count; i++) {
-		if (head == NULL) {
-			break;
+		if (head == NULL) break;
+		if ((head -> user.name == NULL) && head -> user.count == 0) {
+			printf("Nothing to print -- check if you have valid inputs\n");
+			return;
 		}
 		printf("%s: %d\n", head -> user.name, head -> user.count);
 		head = head -> next;
