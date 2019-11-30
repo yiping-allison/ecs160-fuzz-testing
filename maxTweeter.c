@@ -152,11 +152,9 @@ void checkFile(FILE *fileName)
 int commaCounter(char *line)
 {
 	int count = 0;
-	if (strlen(line) >= 1) {
-		for (int i = 0; i < strlen(line) - 1; i++) {
-			if (line[i] == ',') {
-				count++;
-			}
+	for (int i = 0; i < strlen(line); i++) {
+		if (line[i] == ',') {
+			count++;
 		}
 	}
 	return count;
@@ -242,26 +240,18 @@ void processData(FILE *fileName, int namePos, Link *info, int *quoted)
 	char buff[MAX_LINE + 1];
 	while (!feof(fileName)) {
 		if (lineCount > MAX_LINE) {
-			freeLinkedMemory(info -> head);
-			fclose(fileName);
 			forceExit("\nError: CSV file greater than max line count\n");
 		}
 		char *str = fgets(buff, MAX_LINE + 1, fileName);
 		if (!str) return;	// If EOF, return
 		if (commaCounter(str) != NUM_COMMAS) {
-			freeLinkedMemory(info -> head);
-			fclose(fileName);
 			forceExit("\nError: Invalid input format -- wrong number of fields\n");
 		} else if (strlen(str) >= MAX_CHAR) {
 			// if line char count > max char count
-			freeLinkedMemory(info -> head);
-			fclose(fileName);
 			forceExit("\nError: Invalid input format -- too many characters in the line\n");
 		}
 		char *name = extractName(str, namePos, quoted, fileName);
 		if (strcmp(name, "invalid") == 0) {
-			freeLinkedMemory(info -> head);
-			fclose(fileName);
 			forceExit("\nError: Invalid input format -- invalid name found\n");
 		} else if (*name == '\0') {
 			// If name field is empty string
@@ -271,8 +261,6 @@ void processData(FILE *fileName, int namePos, Link *info, int *quoted)
 		lineCount++;
 	}
 	if ((info -> head -> user.name == NULL) && (info -> head -> user.count == 0)) {
-		freeLinkedMemory(info -> head);
-		fclose(fileName);
 		forceExit("\nError: Only HEADER in file.\n");
 	}
 }
