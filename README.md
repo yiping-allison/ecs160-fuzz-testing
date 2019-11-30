@@ -73,7 +73,7 @@ For a more in-depth explanation of the assignment, check out the [pdf](Homework4
 
 Our algorithm uses a _doubly-linked list_. Every Tweeter is stored as a struct which contains a **name** and **count** field. Our other two structs define the linked list implementation. One defines the linked list node, and the other is a struct which holds the pointer to the _HEAD_ and _TAIL_ of our list.
 
-The algorithm uses an in-place insertion sort to order the Tweeters by count. The entire program should take about O(n) because of the file scan. 
+The algorithm uses an in-place insertion sort to order the Tweeters by count. If the program is given a valid file, it should take about O(n) because of the file scan.
 
 When the algorithm encounters a valid tweeter, it does the following:
 
@@ -100,6 +100,7 @@ While using an insertion sort isn't as efficient as using a logarithmic sort, so
 | noName.csv                        | File with no **name** field in the **header** column              |
 | lastLine.csv                      | Check if last line is counted                                     |
 | quotes.csv                        | Testing if quoted **names** are handled                           |
+| twoCol.csv                        | Testing custom **header** column counter                          |
 
 ---
 
