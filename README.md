@@ -23,7 +23,7 @@ UC Davis - Fall 2019
 Please download the `zip` version of this repo because it will automatically remove unneeded development
 and informative files for you.
 
-We have provided a AFL-Compliant file structure, `aflCompat`, with a `Makefile` that will help make running commands/tests easier. After you download and extract the `zip` file, you can use `docker cp` to move `aflCompat` to your Docker Container.
+We have provided a AFL-Compatible file structure, `aflCompat`, with a `Makefile` that will help make running commands/tests easier. After you download and extract the `zip` file, you can use `docker cp` to move `aflCompat` to your Docker Container.
 
 1. **Leave your example csv test files in `aflCompat/in` -- this is where AFL will look for file parameters.**
 2. **`make run` will tell the AFL Fuzz Tester to generate crash files and statistics to `aflCompat/out`.**
@@ -42,20 +42,20 @@ Thanks!
 
 ## Assignment Details & Usage
 
-The goal of this assignment is to create a program which counts the top 10 tweeters processed from a given tweet file.
-
-The program should not crash even when given invalid inputs.
+The goal of this assignment is to create a program which counts the top 10 tweeters processed from a given tweet file and doesn't crash when given invalid inputs.
 
 ### Repo Details
 
 * All of our testing files are located in `/tests`.
 * Our program is documented according to `Doxygen` guidelines. Some of the annotations can be found [here](https://www.cs.cmu.edu/~410/doc/doxygen.html).
 
+**The regular source code and Makefile (makefile -- not AFL-Compatible) are located in the main directory of the zip download. To use the AFL-compatible version, read the instructions [here](#email-to-our-testing-team).**
+
 **To Compile:** `make`
 
 _`make clean` will remove all maxTweeter related objects and executables from your directory._
 
-**To Run:** `./maxTweeter.exe tests/filename.csv`
+**To Run:** `./maxTweeter.exe csvFile`
 
 **Output:**
 
@@ -65,17 +65,23 @@ Bob: 67
 Jane: 56
 ```
 
-### AFL Docker Testing
-
-We've provided a directory structure which works with the fuzz tester on Docker. It is listed in our repo as `aflCompat`. For more information, read [this](#email-to-our-testing-team).
-
 For a more in-depth explanation of the assignment, check out the [pdf](Homework4Part1.pdf).
 
 ---
 
 ## Our Algorithm Implementation
 
-To Be Added...
+Our algorithm uses a _doubly-linked list_. Every Tweeter is stored as a struct which contains a **name** and **count** field. Our other two structs define the linked list implementation. One defines the linked list node, and the other is a struct which holds the pointer to the _HEAD_ and _TAIL_ of our list.
+
+The algorithm uses an in-place insertion sort to order the Tweeters by count. The entire program should take about O(n) because of the file scan. 
+
+When the algorithm encounters a valid tweeter, it does the following:
+
+* If the name is valid, check if the Tweeter is in our database
+* If we found the Tweeter, increment its count and move the node left until whatever is on the left is the same or greater count
+* If we haven't found the tweeter, create a new node and add it to the end of the list
+
+While using an insertion sort isn't as efficient as using a logarithmic sort, sorting in place allows us to create a natural priority queue. Whenever we hit a user who has already been recorded as a frequent tweeter, it takes much less time to find him/her.
 
 ---
 
@@ -89,10 +95,11 @@ To Be Added...
 | doubleName.csv                    | CSV with more than one **name** field declared in the **header**  |
 | headerOnly.csv                    | A CSV with only the **header** provided                           |
 | maxHeaderLength.csv               | CSV with a **header** greater than max character count            |
-| test.csv                          | CSV which contains custom tests during development                |
 | tooManyCommas.csv                 | CSV whose lines have too many commas -- not a valid CSV line      |
 | nonAscii.csv                      | CSV with characters not from the ASCII set                        |
-| noName.csv                        | File with no **name** field in the *header** column               |
+| noName.csv                        | File with no **name** field in the **header** column              |
+| lastLine.csv                      | Check if last line is counted                                     |
+| quotes.csv                        | Testing if quoted **names** are handled                           |
 
 ---
 
