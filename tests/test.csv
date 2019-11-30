@@ -1,0 +1,8 @@
+  1 "",tweet_id,airline_sentiment,aicondidence,negativereason,negatince,airline,airlld,name,negativereason_gold,retweet_count,text,tweet_coord,tweet_created,tweet_location,user_timezone
+  2 1,1292390400,neutral,1,,,Delta,,JetBlueNews,,0,@JetBlue'sbrenduch kxch,,2015-02-16 23:36:05 -0800,USA,Sydney
+  3 2,1741189120,negative,1,Can't Tell,0brenduch.6503,Delta,,nesi_1992,,0,@JetBluthappy,,2015-02-0,undecided,Pacianada)
+  4 3,-1542963200,negative,1,Late Flight,0.346,United,,CPoutname,,0,@united y past 1am.,,2015-0800,Washington DC,
+  5 4,2059558914,negative,1,Late Flight,1,United,,brenduch,,0,@ve to wait,,2015-0800,,Buenos Aires
+  6 5,423759872,negative,9,Custoe,0.3451,Southwest,,VahidESQ,,0,hen not.,,2015-0800,Los ific Time (ord,tweet_creatUS & Canada)
+  7 6,1010978817,negative,1,Bad Flight,0.6707,United,,brenduch                         ,,0,@unietion,,2015-02-1,,Buenos Aires
+  8 7,1241665536,negative,1,Late Flight,1,United,,CRomerDome,,0,@unit a voucher,,2015-0800,Portland OR,Pacific Time (US & Canada)

@@ -1,2 +1,4 @@
-,tweet_id,airline_sentiment,airline_sentiment_confidence,negativereason,negativereason_confidence,"""name""",airline_sentiment_gold,name,nega,,,,,,
-71,1782738945,negative,1,Customer Service Issue,1,Southwest,,Mr. Elephant,,1, http://testurl  @haha @yoyo @yoyo has the a WORST customer service of any airline I've ever flown.,,2/17/2015 8:30,,Central Time (US & Canada)
+,tweet_id,airline_sentiment,airline_sentiment_confidence,negativereason,negativereason_confidence,"""name""",airline_sentiment_gold,"name",nega,,,,,,
+71,1782738945,negative,1,Customer Service Issue,1,Southwest,,"Mr. Elephant",,1, http://testurl  @haha @yoyo @yoyo has the a WORST customer service of any airline I've ever flown.,,2/17/2015 8:30,,Central Time (US & Canada)
+71,1782738945,negative,1,Customer Service Issue,1,Southwest,,"hello",,1, http://testurl  @haha @yoyo @yoyo has the a WORST customer service of any airline I've ever flown.,,2/17/2015 8:30,,Central Time (US & Canada)
+71,1782738945,negative,1,Customer Service Issue,1,Southwest,,""hello"",,1, http://testurl  @haha @yoyo @yoyo has the a WORST customer service of any airline I've ever flown.,,2/17/2015 8:30,,Central Time (US & Canada)
