@@ -67,7 +67,7 @@ Jane: 56
 
 ### AFL Docker Testing
 
-We've provided a directory structure which works with the fuzz tester on Docker. It is listed in our repo as `aflCompat`. For more information on this, read [this](#email-to-our-testing-team).
+We've provided a directory structure which works with the fuzz tester on Docker. It is listed in our repo as `aflCompat`. For more information, read [this](#email-to-our-testing-team).
 
 For a more in-depth explanation of the assignment, check out the [pdf](Homework4Part1.pdf).
 
@@ -91,6 +91,8 @@ To Be Added...
 | maxHeaderLength.csv               | CSV with a **header** greater than max character count            |
 | test.csv                          | CSV which contains custom tests during development                |
 | tooManyCommas.csv                 | CSV whose lines have too many commas -- not a valid CSV line      |
+| nonAscii.csv                      | CSV with characters not from the ASCII set                        |
+| noName.csv                        | File with no **name** field in the *header** column               |
 
 ---
 

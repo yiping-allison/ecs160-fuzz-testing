@@ -10,8 +10,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-/* max characters in one csv line + 1 bc '\0' takes one space */
-#define MAX_CHAR 1025
+/* max characters in one csv line */
+#define MAX_CHAR 1024
 
 /* max number of lines in the csv file */
 #define MAX_LINE 20000
@@ -57,17 +57,19 @@ typedef struct doublelink
 char *allocateName(char *nameToCopy);
 void argumentCheck(int numArg);
 void checkFile(FILE *fileName);
+void checkQuotes(char *name, FILE *filename);
 int commaCounter(char *line);
 Node *createNode(char *name, int initial);
-char *extractName(char *str, int namePos);
+char *extractName(char *str, int namePos, int *quoted, FILE *filename);
 int findUser(char *name, Link *info);
 void forceExit(char *exitMsg);
 void freeLinkedMemory(Node *head);
-int getNameIndex(FILE *fileName);
+int getNameIndex(FILE *fileName, int *quoted);
 void insertAtLast(char *name, Link *info);
 void insertToList(char *name, Link *info);
 void printList(Node *head, int count);
-void processData(FILE *fileName, int namePos, Link *info);
+void processData(FILE *fileName, int namePos, Link *info, int *quoted);
+char *stripQuotes(char *name, FILE *filename);
 void swap(Node *left, Node *right, Link *info);
 
 int main(int argc, char *argv[])
@@ -76,12 +78,13 @@ int main(int argc, char *argv[])
 	FILE *fileName = fopen(argv[1], "r");
 	if (fileName == NULL) forceExit("\nError: No file\n");
 	checkFile(fileName);
+	int quoted = -1;
+	int namePos = getNameIndex(fileName, &quoted);
 	Link *info = malloc(sizeof(Link));
 	Node *first = createNode(NULL, 1);
 	info -> head = first;
 	info -> last = first;
-	int namePos = getNameIndex(fileName);
-	processData(fileName, namePos, info);
+	processData(fileName, namePos, info, &quoted);
 	printList(info -> head, 10);
 	fclose(fileName);
 	freeLinkedMemory(info -> head);
@@ -130,8 +133,10 @@ void checkFile(FILE *fileName)
 	long fileSize = 0;
 	fileSize = ftell(fileName);
 	if (fileSize == 0) {
+		fclose(fileName);
 		forceExit("\nError: Nothing in CSV file\n");
 	} else if (fileSize > (sizeof(char) * (MAX_CHAR * MAX_LINE))) {
+		fclose(fileName);
 		forceExit("\nError: CSV file greater than max file size\n");
 	}
 	fseek(fileName, 0, SEEK_SET);
@@ -174,14 +179,20 @@ int commaCounter(char *line)
  * @param fileName The address to where the file is located
  * @return Index of the username column
  */
-int getNameIndex(FILE *fileName)
+int getNameIndex(FILE *fileName, int *quoted)
 {
 	int loopCounter, index, foundName;
 	loopCounter = index = foundName = 0;
 	char buff[MAX_LINE + 1];
 	char *str = strdup(fgets(buff, MAX_LINE + 1, fileName));
-	if (commaCounter(str) != NUM_COMMAS) forceExit("\nError: Wrong number of columns in Header.\n");
-	if (strlen(str) == MAX_LINE) forceExit("\nError: Exceeded max character length\n");
+	if (commaCounter(str) != NUM_COMMAS) {
+		fclose(fileName);
+		forceExit("\nError: Wrong number of columns in Header.\n");
+	}
+	if (strlen(str) == MAX_LINE) {
+		fclose(fileName);
+		forceExit("\nError: Exceeded max character length\n");
+	}
 	char *token = str, *end = str;
 	char *nullCheck = NULL;
 	while (token != NULL) {
@@ -192,12 +203,21 @@ int getNameIndex(FILE *fileName)
 		if (strcmp(token, "name") == 0) {
 			++foundName;
 			if (foundName == 1) { index = loopCounter; }
+		} else if (strcmp(token, "\"name\"") == 0) {
+			++foundName;
+			if (foundName == 1) index = loopCounter;
+			*quoted = 1;
 		}
 		token = end;
 		loopCounter++;
 	}
-	if (foundName > 1) forceExit("\nError: More than one NAME column\n");
-	if (foundName < 1) forceExit("\nError: No Name column found\n");
+	if (foundName > 1) {
+		fclose(fileName);
+		forceExit("\nError: More than one NAME column\n");
+	} else if (foundName < 1) {
+		fclose(fileName);
+		forceExit("\nError: No Name column found\n");
+	}
 	return index;
 }
 
@@ -216,29 +236,33 @@ int getNameIndex(FILE *fileName)
  * @param info Data struct which contains address of HEAD and TAIL of list
  * @return void
  */
-void processData(FILE *fileName, int namePos, Link *info)
+void processData(FILE *fileName, int namePos, Link *info, int *quoted)
 {
 	int lineCount = 1;
 	char buff[MAX_LINE + 1];
 	while (!feof(fileName)) {
 		if (lineCount > MAX_LINE) {
-			free(info);
+			freeLinkedMemory(info -> head);
+			fclose(fileName);
 			forceExit("\nError: CSV file greater than max line count\n");
 		}
 		char *str = fgets(buff, MAX_LINE + 1, fileName);
 		if (!str) return;	// If EOF, return
 		if (commaCounter(str) != NUM_COMMAS) {
-			lineCount++;
-			continue;
+			freeLinkedMemory(info -> head);
+			fclose(fileName);
+			forceExit("\nError: Invalid input format -- wrong number of fields\n");
 		} else if (strlen(str) >= MAX_CHAR) {
-			// if line char count > max char count, skip it
-			lineCount++;
-			continue;
-		} 
-		char *name = extractName(str, namePos);
+			// if line char count > max char count
+			freeLinkedMemory(info -> head);
+			fclose(fileName);
+			forceExit("\nError: Invalid input format -- too many characters in the line\n");
+		}
+		char *name = extractName(str, namePos, quoted, fileName);
 		if (strcmp(name, "invalid") == 0) {
-			lineCount++;
-			continue;
+			freeLinkedMemory(info -> head);
+			fclose(fileName);
+			forceExit("\nError: Invalid input format -- invalid name found\n");
 		} else if (*name == '\0') {
 			// If name field is empty string
 			name = "empty";
@@ -247,7 +271,9 @@ void processData(FILE *fileName, int namePos, Link *info)
 		lineCount++;
 	}
 	if ((info -> head -> user.name == NULL) && (info -> head -> user.count == 0)) {
-		forceExit("\nOnly HEADER in file.\n");
+		freeLinkedMemory(info -> head);
+		fclose(fileName);
+		forceExit("\nError: Only HEADER in file.\n");
 	}
 }
 
@@ -259,7 +285,7 @@ void processData(FILE *fileName, int namePos, Link *info)
  * @param counter Address which contains count of commas
  * @return The supposed 'name' string at the index value
  */
-char *extractName(char* str, int namePos)
+char *extractName(char* str, int namePos, int *quoted, FILE *filename)
 {
 	int index = 0;
 	char *token = str, *end = str, *nameFound = NULL;
@@ -269,12 +295,46 @@ char *extractName(char* str, int namePos)
 		if (!nullCheck) return "invalid";
 		if (index == namePos) {
 			nameFound = token;
+			if (*quoted == -1) checkQuotes(nameFound, filename);
+			if (*quoted == 1) nameFound = stripQuotes(nameFound, filename);
 		}
 		token = end;
 		index++;
 	}
 	return nameFound;
  }
+
+/**
+ * @brief Checks if there're invalid quotes in NAME field
+ * 
+ * @param name Pointer to a char array representing NAME
+ * @return void
+ */
+void checkQuotes(char *name, FILE *filename)
+{
+	if (name[0] == '"' || name[strlen(name) - 1] == '"') {
+		fclose(filename);
+		forceExit("\nError: invalid quotes in NAME field\n");
+	}
+}
+
+/**
+ * @brief Removes the outermost quotes level of a NAME string
+ * 
+ * @param name Pointer to a char array representing NAME
+ * @return The new strippedName
+ */
+char *stripQuotes(char *name, FILE *filename)
+{
+	if (name[0] != '"' || name[strlen(name) - 1] != '"') {
+		fclose(filename);
+		forceExit("\nError: mismatching quotes in name field\n");
+	}
+	char strippedName[MAX_CHAR];
+	strncpy(strippedName, name + 1, (strlen(name) - 1) - 1);	
+	name = strippedName;
+	return name;
+}
 
 /**
  * @brief Creates a new node
