@@ -80,6 +80,7 @@ int main(int argc, char *argv[])
 	int comma = 0;
 	int namePos = getNameIndex(fileName, &quoted, &comma);
 	Link *info = malloc(sizeof(Link));
+	if (info == NULL) forceExit("\nError: Couldn't allocate memory\n");
 	Node *first = createNode(NULL, 1);
 	info -> head = first;
 	info -> last = first;
@@ -355,9 +356,11 @@ void removeChar(char *str, int index)
 Node *createNode(char *name, int initial)
 {
 	Node *newNode = malloc(sizeof(Node));
+	if (newNode == NULL) forceExit("\nError: Couldn't allocate memory\n");
 	newNode -> next = NULL;
 	newNode -> prev = NULL;
 	Tweeter *newTweeter = malloc(sizeof(Tweeter));
+	if (newTweeter == NULL) forceExit("\nError: Couldn't allocate memory\n");
 	if (initial == 1) {
 		// initial HEAD node
 		newTweeter -> count = 0;
@@ -518,6 +521,7 @@ void insertAtLast(char *name, Link *info)
 char *allocateName(char *nameToCopy)
 {
 	char *newName = malloc(sizeof(nameToCopy));
+	if (newName == NULL) forceExit("\nError: Couldn't allocate memory\n");
 	strcpy(newName, nameToCopy);
 	return newName;	
 }
