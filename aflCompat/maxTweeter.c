@@ -59,18 +59,19 @@ void checkFile(FILE *fileName);
 void checkQuotes(char *name, FILE *filename, Link *info);
 int commaCounter(char *line);
 Node *createNode(int initial, Link *info);
-char *extractName(char *str, int namePos, int *quoted, FILE *filename, Link *info);
+char *extractName(char *str, int namePos, int quoted, FILE *filename, Link *info);
 int findUser(char *name, Link *info);
 void forceExit(char *exitMsg);
 void freeLinkedMemory(Node *head, Link *info);
-int getNameIndex(FILE *fileName, int *quoted, int *comma);
+int getNameIndex(FILE *fileName, int *quoted, int *comma, int *oneCol);
 void insertAtLast(char *name, Link *info);
 void insertToList(char *name, Link *info);
 void printList(Node *head, int count);
-void processData(FILE *fileName, int namePos, Link *info, int *quoted, int *comma);
+void processData(FILE *fileName, int namePos, Link *info, int quoted, int comma, int oneCol);
 void removeChar(char *str, int index);
 void stripQuotes(char *name, FILE *filename, Link *info);
 void swap(Node *left, Node *right, Link *info);
+void trimNewLine(char *name);
 
 int main(int argc, char *argv[])
 {
@@ -80,7 +81,8 @@ int main(int argc, char *argv[])
 	checkFile(fileName);
 	int quoted = -1;
 	int comma = 0;
-	int namePos = getNameIndex(fileName, &quoted, &comma);
+	int oneCol = -1;
+	int namePos = getNameIndex(fileName, &quoted, &comma, &oneCol);
 	Link *info = malloc(sizeof(Link));
 	if (info == NULL) {
 		fclose(fileName);
@@ -89,7 +91,7 @@ int main(int argc, char *argv[])
 	Node *first = createNode(1, info);
 	info -> head = first;
 	info -> last = first;
-	processData(fileName, namePos, info, &quoted, &comma);
+	processData(fileName, namePos, info, quoted, comma, oneCol);
 	printList(info -> head, 10);
 	fclose(fileName);
 	freeLinkedMemory(info -> head, info);
@@ -182,7 +184,7 @@ int commaCounter(char *line)
  * @param fileName The address to where the file is located
  * @return Index of the username column
  */
-int getNameIndex(FILE *fileName, int *quoted, int *comma)
+int getNameIndex(FILE *fileName, int *quoted, int *comma, int *oneCol)
 {
 	int loopCounter, index, foundName;
 	loopCounter = index = foundName = 0;
@@ -195,6 +197,19 @@ int getNameIndex(FILE *fileName, int *quoted, int *comma)
 		forceExit("\nError: Exceeded max character length\n");
 	}
 	char *token = str, *end = str;
+	if (*comma == 0) removeChar(token, strlen(token) - 1);
+	if (*comma == 0 && ((strcmp(token, "name") != 0) && (strcmp(token, "\"name\"") != 0))) {
+		free(str);
+		fclose(fileName);
+		forceExit("\nError: NAME column not formatted correctly\n");
+	} else if (*comma == 0 && (strcmp(token, "name") == 0)) {
+		*oneCol = 1;
+		return 0;
+	} else if (*comma == 0 && (strcmp(token, "\"name\"") == 0)) {
+		*quoted = 1;
+		*oneCol = 1;
+		return 0;
+	}
 	char *nullCheck = NULL;
 	while (token != NULL) {
 		nullCheck = strsep(&end, ",");
@@ -240,7 +255,7 @@ int getNameIndex(FILE *fileName, int *quoted, int *comma)
  * @param info Data struct which contains address of HEAD and TAIL of list
  * @return void
  */
-void processData(FILE *fileName, int namePos, Link *info, int *quoted, int *comma)
+void processData(FILE *fileName, int namePos, Link *info, int quoted, int comma, int oneCol)
 {
 	int lineCount = 1;
 	char buff[MAX_LINE + 1];
@@ -252,7 +267,7 @@ void processData(FILE *fileName, int namePos, Link *info, int *quoted, int *comm
 		}
 		char *str = fgets(buff, MAX_LINE + 1, fileName);
 		if (!str) return;	// If EOF, return
-		if (commaCounter(str) != *comma) {
+		if (commaCounter(str) != comma) {
 			fclose(fileName);
 			forceExit("\nError: Invalid input format -- wrong number of fields\n");
 		} else if (strlen(str) >= MAX_CHAR) {
@@ -261,6 +276,7 @@ void processData(FILE *fileName, int namePos, Link *info, int *quoted, int *comm
 			forceExit("\nError: Invalid input format -- too many characters in the line\n");
 		}
 		char *name = extractName(str, namePos, quoted, fileName, info);
+		if (oneCol == 1) trimNewLine(name);
 		if (strcmp(name, "invalid") == 0) {
 			fclose(fileName);
 			forceExit("\nError: Invalid input format -- invalid name found\n");
@@ -281,7 +297,7 @@ void processData(FILE *fileName, int namePos, Link *info, int *quoted, int *comm
  * @param counter Address which contains count of commas
  * @return The supposed 'name' string at the index value
  */
-char *extractName(char* str, int namePos, int *quoted, FILE *filename, Link *info)
+char *extractName(char* str, int namePos, int quoted, FILE *filename, Link *info)
 {
 	int index = 0;
 	char *token = str, *end = str, *nameFound = NULL;
@@ -291,13 +307,20 @@ char *extractName(char* str, int namePos, int *quoted, FILE *filename, Link *inf
 		if (!nullCheck) return "invalid";
 		if (index == namePos) {
 			nameFound = token;
-			if (*quoted == -1) checkQuotes(nameFound, filename, info);
-			if (*quoted == 1) stripQuotes(nameFound, filename, info);
+			if (quoted == -1) checkQuotes(nameFound, filename, info);
+			if (quoted == 1) stripQuotes(nameFound, filename, info);
 		}
 		token = end;
 		index++;
 	}
 	return nameFound;
+ }
+
+ void trimNewLine(char *name)
+ {
+	for (int i = strlen(name); name[i] == '\n'; i--) {
+		removeChar(name, i);
+	}
  }
 
 /**
@@ -553,29 +576,20 @@ char *allocateName(char *nameToCopy, Link *info)
  * It will print the whole linked list when count == -1, else num count.
  * 
  * @param head The memory location to first node of list
- * @param count Either the num nodes you want printed or -1 for all
+ * @param count The num nodes you want printed
  * @return void 
  */
 void printList(Node *head, int count)
 {
-	if (count == -1) {
-		// print all elements
+	// print top 10
+	for (int i = 0; i < count; i++) {
 		if ((head -> user.name == NULL) && head -> user.count == 0) {
 			return;
 		}
-		while (head != NULL) {
-			printf("%s: %d\n", head -> user.name, head -> user.count);
-			head = head -> next;
-		}
-		return;
-	}
-	// print top 10
-	if ((head -> user.name == NULL) && head -> user.count == 0) {
-		return;
-	}
-	for (int i = 0; i < count; i++) {
-		if (head == NULL) break;
-		printf("%s: %d\n", head -> user.name, head -> user.count);
+		char output[MAX_CHAR];
+		strcpy(output, head -> user.name);
+		printf("%s: %d\n", output, head -> user.count);
+		if (head -> next == NULL) return;
 		head = head -> next;
 	}
 }
