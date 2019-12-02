@@ -91,7 +91,6 @@ int main(int argc, char *argv[])
 	info -> last = first;
 	processData(fileName, namePos, info, &quoted, &comma);
 	printList(info -> head, 10);
-	printList(info -> head, -1);
 	fclose(fileName);
 	freeLinkedMemory(info -> head, info);
 	return EXIT_SUCCESS;
