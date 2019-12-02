@@ -4,6 +4,8 @@
  * 
  * @author Yiping (Allison) Su
  * @author Joanne Chang
+ * 
+ * @bug Memory-Leak in Forced Exits From ProcessData and On
  */
 
 #include <stdio.h>
@@ -51,23 +53,23 @@ typedef struct doublelink
 	struct node *last;
 } Link;
 
-char *allocateName(char *nameToCopy);
+char *allocateName(char *nameToCopy, Link *info);
 void argumentCheck(int numArg);
 void checkFile(FILE *fileName);
-void checkQuotes(char *name);
+void checkQuotes(char *name, FILE *filename, Link *info);
 int commaCounter(char *line);
-Node *createNode(char *name, int initial);
-char *extractName(char *str, int namePos, int *quoted, FILE *filename);
+Node *createNode(int initial, Link *info);
+char *extractName(char *str, int namePos, int *quoted, FILE *filename, Link *info);
 int findUser(char *name, Link *info);
 void forceExit(char *exitMsg);
-void freeLinkedMemory(Node *head);
+void freeLinkedMemory(Node *head, Link *info);
 int getNameIndex(FILE *fileName, int *quoted, int *comma);
 void insertAtLast(char *name, Link *info);
 void insertToList(char *name, Link *info);
 void printList(Node *head, int count);
 void processData(FILE *fileName, int namePos, Link *info, int *quoted, int *comma);
 void removeChar(char *str, int index);
-void stripQuotes(char *name);
+void stripQuotes(char *name, FILE *filename, Link *info);
 void swap(Node *left, Node *right, Link *info);
 
 int main(int argc, char *argv[])
@@ -80,14 +82,17 @@ int main(int argc, char *argv[])
 	int comma = 0;
 	int namePos = getNameIndex(fileName, &quoted, &comma);
 	Link *info = malloc(sizeof(Link));
-	if (info == NULL) forceExit("\nError: Couldn't allocate memory\n");
-	Node *first = createNode(NULL, 1);
+	if (info == NULL) {
+		fclose(fileName);
+		forceExit("\nError: Couldn't allocate memory\n");
+	}
+	Node *first = createNode(1, info);
 	info -> head = first;
 	info -> last = first;
 	processData(fileName, namePos, info, &quoted, &comma);
 	printList(info -> head, 10);
 	fclose(fileName);
-	freeLinkedMemory(info -> head);
+	freeLinkedMemory(info -> head, info);
 	return EXIT_SUCCESS;
 }
 
@@ -133,8 +138,10 @@ void checkFile(FILE *fileName)
 	long fileSize = 0;
 	fileSize = ftell(fileName);
 	if (fileSize == 0) {
+		fclose(fileName);
 		forceExit("\nError: Nothing in CSV file\n");
 	} else if (fileSize > (sizeof(char) * (MAX_CHAR * MAX_LINE))) {
+		fclose(fileName);
 		forceExit("\nError: CSV file greater than max file size\n");
 	}
 	fseek(fileName, 0, SEEK_SET);
@@ -184,6 +191,7 @@ int getNameIndex(FILE *fileName, int *quoted, int *comma)
 	*comma = commaCounter(str);
 	if (strlen(str) == MAX_LINE) {
 		fclose(fileName);
+		free(str);
 		forceExit("\nError: Exceeded max character length\n");
 	}
 	char *token = str, *end = str;
@@ -205,10 +213,15 @@ int getNameIndex(FILE *fileName, int *quoted, int *comma)
 		loopCounter++;
 	}
 	if (foundName > 1) {
+		fclose(fileName);
+		free(str);
 		forceExit("\nError: More than one NAME column\n");
 	} else if (foundName < 1) {
-		forceExit("\nError: No Name column found\n");
+		fclose(fileName);
+		free(str);
+		forceExit("\nError: No NAME column found\n");
 	}
+	free(str);
 	return index;
 }
 
@@ -233,18 +246,23 @@ void processData(FILE *fileName, int namePos, Link *info, int *quoted, int *comm
 	char buff[MAX_LINE + 1];
 	while (!feof(fileName)) {
 		if (lineCount > MAX_LINE) {
+			freeLinkedMemory(info -> head, info);
+			fclose(fileName);
 			forceExit("\nError: CSV file greater than max line count\n");
 		}
 		char *str = fgets(buff, MAX_LINE + 1, fileName);
 		if (!str) return;	// If EOF, return
 		if (commaCounter(str) != *comma) {
+			fclose(fileName);
 			forceExit("\nError: Invalid input format -- wrong number of fields\n");
 		} else if (strlen(str) >= MAX_CHAR) {
 			// if line char count > max char count
+			fclose(fileName);
 			forceExit("\nError: Invalid input format -- too many characters in the line\n");
 		}
-		char *name = extractName(str, namePos, quoted, fileName);
+		char *name = extractName(str, namePos, quoted, fileName, info);
 		if (strcmp(name, "invalid") == 0) {
+			fclose(fileName);
 			forceExit("\nError: Invalid input format -- invalid name found\n");
 		} else if (*name == '\0') {
 			// If name field is empty string
@@ -254,6 +272,7 @@ void processData(FILE *fileName, int namePos, Link *info, int *quoted, int *comm
 		lineCount++;
 	}
 	if ((info -> head -> user.name == NULL) && (info -> head -> user.count == 0)) {
+		fclose(fileName);
 		forceExit("\nError: Only HEADER in file.\n");
 	}
 }
@@ -266,7 +285,7 @@ void processData(FILE *fileName, int namePos, Link *info, int *quoted, int *comm
  * @param counter Address which contains count of commas
  * @return The supposed 'name' string at the index value
  */
-char *extractName(char* str, int namePos, int *quoted, FILE *filename)
+char *extractName(char* str, int namePos, int *quoted, FILE *filename, Link *info)
 {
 	int index = 0;
 	char *token = str, *end = str, *nameFound = NULL;
@@ -276,8 +295,8 @@ char *extractName(char* str, int namePos, int *quoted, FILE *filename)
 		if (!nullCheck) return "invalid";
 		if (index == namePos) {
 			nameFound = token;
-			if (*quoted == -1) checkQuotes(nameFound);
-			if (*quoted == 1) stripQuotes(nameFound);
+			if (*quoted == -1) checkQuotes(nameFound, filename, info);
+			if (*quoted == 1) stripQuotes(nameFound, filename, info);
 		}
 		token = end;
 		index++;
@@ -291,10 +310,11 @@ char *extractName(char* str, int namePos, int *quoted, FILE *filename)
  * @param name Pointer to a char array representing NAME
  * @return void
  */
-void checkQuotes(char *name)
+void checkQuotes(char *name, FILE *filename, Link *info)
 {
 	if (name[0] == '"' || name[strlen(name) - 1] == '"') {
-		forceExit("\nError: invalid quotes in NAME field\n");
+		fclose(filename);
+		forceExit("\nError: Invalid quotes in NAME field\n");
 	}
 }
 
@@ -304,12 +324,14 @@ void checkQuotes(char *name)
  * @param name Pointer to a char array representing NAME
  * @return The new strippedName
  */
-void stripQuotes(char *name)
+void stripQuotes(char *name, FILE *filename, Link *info)
 {
 	if (strlen(name) < 2) {
-		forceExit("\nError: invalid quotes in NAME field\n");
-	}else if (name[0] != '"' || name[strlen(name) - 1] != '"') {
-		forceExit("\nError: mismatching quotes in name field\n");
+		fclose(filename);
+		forceExit("\nError: Invalid quotes in NAME field\n");
+	} else if (name[0] != '"' || name[strlen(name) - 1] != '"') {
+		fclose(filename);
+		forceExit("\nError: Mismatching quotes in name field\n");
 	}
 	if (strlen(name) >= 3) {
 		int len = strlen(name);
@@ -353,23 +375,23 @@ void removeChar(char *str, int index)
  * @return The pointer to the new node to be inserted in a list
  *         with filler values
  */
-Node *createNode(char *name, int initial)
+Node *createNode(int initial, Link *info)
 {
 	Node *newNode = malloc(sizeof(Node));
-	if (newNode == NULL) forceExit("\nError: Couldn't allocate memory\n");
+	if (newNode == NULL) {
+		forceExit("\nError: Couldn't allocate memory -- New Node\n");
+	}
 	newNode -> next = NULL;
 	newNode -> prev = NULL;
-	Tweeter *newTweeter = malloc(sizeof(Tweeter));
-	if (newTweeter == NULL) forceExit("\nError: Couldn't allocate memory\n");
+	Tweeter newTweeter;
 	if (initial == 1) {
 		// initial HEAD node
-		newTweeter -> count = 0;
-		newTweeter -> name = NULL;
+		newTweeter.count = 0;
 	} else {
-		newTweeter -> count = 1;
-		newTweeter -> name = name;
+		newTweeter.count = 1;
 	}
-	newNode -> user = *newTweeter;
+	newTweeter.name = NULL;
+	newNode -> user = newTweeter;
 	return newNode;
 }
 
@@ -392,7 +414,7 @@ void insertToList(char *name, Link *info)
 		// The node list is empty -- we start at item one
 		// HEAD of the list
 		info -> head -> user.count = 1;
-		info -> head -> user.name = allocateName(name);
+		info -> head -> user.name = allocateName(name, info);
 		return;
 	}
 	// There're items in the list -- find the user first
@@ -501,8 +523,8 @@ void swap(Node *left, Node *right, Link *info)
  */
 void insertAtLast(char *name, Link *info)
 {
-	Node *newNode = createNode(name, 0);
-	newNode -> user.name = allocateName(name);
+	Node *newNode = createNode(0, info);
+	newNode -> user.name = allocateName(name, info);
 	info -> last -> next = newNode;
 	newNode -> prev = info -> last;
 	info -> last = newNode;
@@ -518,10 +540,12 @@ void insertAtLast(char *name, Link *info)
  * @param nameToCopy The address of string to be copied
  * @return The new address to the name
  */
-char *allocateName(char *nameToCopy)
+char *allocateName(char *nameToCopy, Link *info)
 {
 	char *newName = malloc(sizeof(nameToCopy));
-	if (newName == NULL) forceExit("\nError: Couldn't allocate memory\n");
+	if (newName == NULL) {
+		forceExit("\nError: Couldn't allocate memory -- NAME field\n");
+	}
 	strcpy(newName, nameToCopy);
 	return newName;	
 }
@@ -540,23 +564,23 @@ void printList(Node *head, int count)
 {
 	if (count == -1) {
 		printf("\nPrinting all elements:\n");
+		if ((head -> user.name == NULL) && head -> user.count == 0) {
+			printf("Nothing to print -- check if you have valid inputs\n");
+			return;
+		}
 		while (head != NULL) {
-			if ((head -> user.name == NULL) && head -> user.count == 0) {
-				printf("Nothing to print -- check if you have valid inputs\n");
-				return;
-			}
 			printf("%s: %d\n", head -> user.name, head -> user.count);
 			head = head -> next;
 		}
 		return;
 	}
 	printf("\nPrinting Top 10:\n");
+	if ((head -> user.name == NULL) && head -> user.count == 0) {
+		printf("Nothing to print -- check if you have valid inputs\n");
+		return;
+	}
 	for (int i = 0; i < count; i++) {
 		if (head == NULL) break;
-		if ((head -> user.name == NULL) && head -> user.count == 0) {
-			printf("Nothing to print -- check if you have valid inputs\n");
-			return;
-		}
 		printf("%s: %d\n", head -> user.name, head -> user.count);
 		head = head -> next;
 	}
@@ -568,7 +592,7 @@ void printList(Node *head, int count)
  * @param head The memory location to first node of list
  * @return void
  */
-void freeLinkedMemory(Node *head)
+void freeLinkedMemory(Node *head, Link *info)
 {
 	Node *tmp;
 	while (head != NULL) {
@@ -577,4 +601,5 @@ void freeLinkedMemory(Node *head)
 		free(tmp -> user.name);
 		free(tmp);
 	}
+	free(info);
 }
