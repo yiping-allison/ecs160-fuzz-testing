@@ -319,7 +319,7 @@ void checkQuotes(char *name, FILE *filename, Link *info)
  * @brief Removes the outermost quotes level of a NAME string
  * 
  * @param name Pointer to a char array representing NAME
- * @return The new strippedName
+ * @return void
  */
 void stripQuotes(char *name, FILE *filename, Link *info)
 {
