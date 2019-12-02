@@ -91,6 +91,7 @@ int main(int argc, char *argv[])
 	info -> last = first;
 	processData(fileName, namePos, info, &quoted, &comma);
 	printList(info -> head, 10);
+	printList(info -> head, -1);
 	fclose(fileName);
 	freeLinkedMemory(info -> head, info);
 	return EXIT_SUCCESS;
@@ -270,10 +271,6 @@ void processData(FILE *fileName, int namePos, Link *info, int *quoted, int *comm
 		}
 		insertToList(name, info);
 		lineCount++;
-	}
-	if ((info -> head -> user.name == NULL) && (info -> head -> user.count == 0)) {
-		fclose(fileName);
-		forceExit("\nError: Only HEADER in file.\n");
 	}
 }
 
@@ -563,9 +560,8 @@ char *allocateName(char *nameToCopy, Link *info)
 void printList(Node *head, int count)
 {
 	if (count == -1) {
-		printf("\nPrinting all elements:\n");
+		// print all elements
 		if ((head -> user.name == NULL) && head -> user.count == 0) {
-			printf("Nothing to print -- check if you have valid inputs\n");
 			return;
 		}
 		while (head != NULL) {
@@ -574,9 +570,8 @@ void printList(Node *head, int count)
 		}
 		return;
 	}
-	printf("\nPrinting Top 10:\n");
+	// print top 10
 	if ((head -> user.name == NULL) && head -> user.count == 0) {
-		printf("Nothing to print -- check if you have valid inputs\n");
 		return;
 	}
 	for (int i = 0; i < count; i++) {
